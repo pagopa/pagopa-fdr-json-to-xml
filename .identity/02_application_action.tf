@@ -42,7 +42,7 @@ resource "null_resource" "github_runner_app_permissions_to_namespace" {
 }
 
 resource "azurerm_role_assignment" "environment_function" {
-  scope                = data.azurerm_resource_group.nodo_re_rg.id
+  scope                = data.azurerm_resource_group.fdr_rg.id
   role_definition_name = "Contributor"
   principal_id         = module.github_runner_app.object_id
 }

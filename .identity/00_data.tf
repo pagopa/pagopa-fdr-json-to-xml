@@ -37,6 +37,6 @@ data "azurerm_key_vault_secret" "key_vault_slack_webhook_url" {
   key_vault_id = data.azurerm_key_vault.domain_key_vault.id
 }
 
-data "azurerm_resource_group" "nodo_re_rg" {
-  name  = "pagopa-${var.env_short}-${local.location_short}-nodo-re-to-datastore-rg"
+data "azurerm_resource_group" "fdr_rg" {
+  name  = "pagopa-${var.env_short}-${local.location_short}-fdr-rg"
 }
