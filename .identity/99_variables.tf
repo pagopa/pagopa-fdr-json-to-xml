@@ -1,11 +1,11 @@
 locals {
   github = {
     org        = "pagopa"
-    repository = "pagopa-nodo-re-to-tablestorage"
+    repository = "pagopa-fdr-json-to-xml"
   }
 
   prefix         = "pagopa"
-  domain         = "nodo"
+  domain         = "fdr"
   location_short = "weu"
   product        = "${var.prefix}-${var.env_short}"
 
