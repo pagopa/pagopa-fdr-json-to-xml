@@ -98,6 +98,7 @@ public class FdrJsonToXml {
 		Fdr fdr = new Fdr();
 		fdr.setFdr(fdrMessage.getFdr());
 		fdr.setPspId(fdrMessage.getPspId());
+		fdr.setOrganizationId(fdrMessage.getOrganizationId());
 		fdr.setRetry(fdrMessage.getRetry());
 		fdr.setRevision(fdrMessage.getRevision());
 		return fdr;
