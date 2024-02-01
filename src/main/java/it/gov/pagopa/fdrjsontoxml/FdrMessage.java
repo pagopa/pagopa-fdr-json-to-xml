@@ -11,6 +11,8 @@ public class FdrMessage {
 
   private String pspId;
 
+  private String organizationId;
+
   private Long retry;
 
   private Long revision;

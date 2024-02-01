@@ -59,7 +59,7 @@
         }
       },
       "Fdr" : {
-        "required" : [ "fdr", "pspId", "retry", "revision"],
+        "required" : [ "fdr", "pspId","organizationId", "retry", "revision"],
         "type" : "object",
         "properties" : {
           "fdr" : {
@@ -69,6 +69,10 @@
             "example" : "2016-08-16pspTest-1178"
           },
           "pspId" : {
+            "type" : "string",
+            "example" : "1"
+          },
+          "organizationId" : {
             "type" : "string",
             "example" : "1"
           },
