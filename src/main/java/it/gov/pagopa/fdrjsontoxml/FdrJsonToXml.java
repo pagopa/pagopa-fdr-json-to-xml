@@ -61,7 +61,7 @@ public class FdrJsonToXml {
 
 
     @FunctionName("QueueFdrJsonToXmlEventProcessor")
-	@ExponentialBackoffRetry(maxRetryCount = MAX_RETRY_COUNT, maximumInterval = "01:30:00", minimumInterval = "00:00:10")
+	@ExponentialBackoffRetry(maxRetryCount = 10, maximumInterval = "01:30:00", minimumInterval = "00:00:10")
     public void processNodoReEvent (
 			@QueueTrigger(
 					name = "jsonTrigger",
