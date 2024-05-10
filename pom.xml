@@ -5,7 +5,7 @@
 
     <groupId>it.gov.pagopa</groupId>
     <artifactId>fdrjsontoxml</artifactId>
-    <version>0.2.0</version>
+    <version>0.2.0-1-NOD-836-fdr-gestire-gli-errori-di-riversamento</version>
     <packaging>jar</packaging>
 
     <name>FDR JSON to XML Fn</name>
