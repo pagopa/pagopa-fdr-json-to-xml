@@ -4,8 +4,11 @@ import com.azure.data.tables.TableClient;
 import com.azure.data.tables.TableServiceClient;
 import com.azure.data.tables.TableServiceClientBuilder;
 import com.azure.data.tables.models.TableEntity;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.functions.ExecutionContext;
+import com.microsoft.azure.functions.annotation.ExponentialBackoffRetry;
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.QueueTrigger;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -19,11 +22,14 @@ import java.time.Instant;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 /**
  * Azure Functions with Azure Queue trigger.
  */
 public class FdrJsonToXml {
+
+	private static final Integer MAX_RETRY_COUNT = 10;
 
 	private static final String fdrFase1BaseUrl = System.getenv("FDR_FASE1_BASE_URL");
 	private static final String fdrFase1NewApiKey = System.getenv("FDR_FASE1_API_KEY");
@@ -56,6 +62,7 @@ public class FdrJsonToXml {
 
 
     @FunctionName("QueueFdrJsonToXmlEventProcessor")
+	@ExponentialBackoffRetry(maxRetryCount = 10, maximumInterval = "01:30:00", minimumInterval = "00:00:10")
     public void processNodoReEvent (
 			@QueueTrigger(
 					name = "jsonTrigger",
@@ -64,34 +71,62 @@ public class FdrJsonToXml {
 			String b64Message,
 			final ExecutionContext context) {
 
+		String errorCause = null;
+		boolean isPersistenceOk = true;
+		Throwable causedBy = null;
+		int retryIndex = context.getRetryContext() == null ? -1 : context.getRetryContext().getRetrycount();
+
 		Logger logger = context.getLogger();
+		if (retryIndex == MAX_RETRY_COUNT) {
+			logger.log(Level.WARNING, () -> String.format("[ALERT][FdrJsonToXml][LAST_RETRY] Performing last retry for event ingestion: InvocationId [%s]", context.getInvocationId()));
+		}
+
 		String message = new String(Base64.getDecoder().decode(b64Message), StandardCharsets.UTF_8);
-		logger.info("Queue message: " + message);
 
 		try {
+
 			// read json
 			ObjectMapper objectMapper = new ObjectMapper();
 			FdrMessage fdrMessage = objectMapper.readValue(message, FdrMessage.class);
-			logger.info("Process fdr=["+fdrMessage.getFdr()+"], pspId=["+fdrMessage.getPspId()+"]");
+			logger.log(Level.INFO, () -> String.format("Performing event ingestion: InvocationId [%s], Retry Attempt [%d], File name:[%s]", context.getInvocationId(), retryIndex, fdrMessage.getFdr()));
 
 			// create body for notify FDR
 			Fdr fdr = getFdr(fdrMessage);
+
 			// call notify FDR
-			logger.info("Calling... notify");
-			manageHttpError(logger, message, () ->
+			manageHttpError(message, () ->
 					getFdrFase1Api().notifyFdrToConvert(fdr)
 			);
 
-			logger.info("Done processing events");
+		} catch (JsonProcessingException e) {
+			logger.log(Level.INFO, () -> String.format("Performing event ingestion: InvocationId [%s], Retry Attempt [%d], File name:[UNKNOWN]", context.getInvocationId(), retryIndex));
+
+			Instant now = Instant.now();
+			ErrorEnum error = ErrorEnum.GENERIC_ERROR;
+			sendGenericError(now, message, error, e);
+
+			isPersistenceOk = false;
+			errorCause = getErrorMessage(error, message, now);
+			causedBy = e;
 		} catch (AppException e) {
-			logger.info("Failure processing events");
+			isPersistenceOk = false;
+			errorCause = e.getMessage();
+			causedBy = e;
 		} catch (Exception e) {
 			Instant now = Instant.now();
 			ErrorEnum error = ErrorEnum.GENERIC_ERROR;
-			logger.log(Level.SEVERE, getErrorMessage(error, message, now), e);
-			sendGenericError(logger, now, message, error, e);
-			logger.info("Failure processing events");
+			sendGenericError(now, message, error, e);
+
+			isPersistenceOk = false;
+			errorCause = getErrorMessage(error, message, now);
+			causedBy = e;
         }
+
+		if (!isPersistenceOk) {
+			String finalErrorCause = errorCause;
+			logger.log(Level.SEVERE, () -> finalErrorCause);
+			throw new AppException(errorCause, causedBy);
+		}
     }
 
 	private Fdr getFdr(FdrMessage fdrMessage){
@@ -109,41 +144,39 @@ public class FdrJsonToXml {
 		T get() throws ApiException;
 	}
 	private static String getErrorMessage(ErrorEnum errorEnum, String message, Instant now){
-		return "[ALERT] [error="+errorEnum.name()+"] [message="+message+"] Http error at "+ now;
+		return "[ALERT][FdrJsonToXml][error="+errorEnum.name()+"] [message="+message+"] Http error at "+ now;
 	}
-	private static<T> void manageHttpError(Logger logger, String message, SupplierWithApiException<T> fn){
+	private static<T> void manageHttpError(String message, SupplierWithApiException<T> fn){
 		try {
 			fn.get();
 		} catch (ApiException e) {
-			String errorResposne = e.getResponseBody();
-
+			String errorResponse = e.getResponseBody();
 			Instant now = Instant.now();
 			ErrorEnum error = ErrorEnum.HTTP_ERROR;
-			logger.log(Level.SEVERE, getErrorMessage(error, message, now), e);
-			sendHttpError(logger, now, message, error, errorResposne, e);
-			throw new AppException(message, e);
+			String errorMessage = getErrorMessage(error, message, now);
+			sendHttpError(now, message, error, errorResponse, e);
+			throw new AppException(errorMessage, e);
 		}
 	}
-	private static void sendGenericError(Logger logger, Instant now, String message, ErrorEnum errorEnum, Exception e){
-		_sendToErrorTable(logger, now, message, errorEnum,   Optional.empty(), e);
+	private static void sendGenericError(Instant now, String message, ErrorEnum errorEnum, Exception e){
+		_sendToErrorTable(now, message, errorEnum,   Optional.empty(), e);
 	}
-	private static void sendHttpError(Logger logger, Instant now, String message, ErrorEnum errorEnum, String httpErrorResposne, Exception e){
-		_sendToErrorTable(logger, now, message, errorEnum, Optional.ofNullable(httpErrorResposne), e);
+	private static void sendHttpError(Instant now, String message, ErrorEnum errorEnum, String httpErrorResposne, Exception e){
+		_sendToErrorTable(now, message, errorEnum, Optional.ofNullable(httpErrorResposne), e);
 	}
 
-	private static void _sendToErrorTable(Logger logger, Instant now, String message, ErrorEnum errorEnum, Optional<String> httpErrorResposne, Exception e){
+	private static void _sendToErrorTable(Instant now, String message, ErrorEnum errorEnum, Optional<String> httpErrorResponse, Exception e){
 		String id = UUID.randomUUID().toString();
 		Map<String,Object> errorMap = new LinkedHashMap<>();
 		errorMap.put(AppConstant.columnFieldId, id);
 		errorMap.put(AppConstant.columnFieldCreated, now);
 		errorMap.put(AppConstant.columnFieldMessage, message);
 		errorMap.put(AppConstant.columnFieldErrorType, errorEnum.name());
-		httpErrorResposne.ifPresent(a -> errorMap.put(AppConstant.columnFieldHttpErrorResposne, a));
+		httpErrorResponse.ifPresent(a -> errorMap.put(AppConstant.columnFieldHttpErrorResposne, a));
 		errorMap.put(AppConstant.columnFieldStackTrace, ExceptionUtils.getStackTrace(e));
 
 		String partitionKey =  now.toString().substring(0,10);
 
-		logger.info("Send to "+tableName+" record with "+AppConstant.columnFieldId+"="+id);
 		TableClient tableClient = getTableServiceClient().getTableClient(tableName);
 		TableEntity entity = new TableEntity(partitionKey, id);
 		entity.setProperties(errorMap);
