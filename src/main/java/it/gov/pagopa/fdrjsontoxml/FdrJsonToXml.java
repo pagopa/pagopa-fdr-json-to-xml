@@ -81,10 +81,10 @@ public class FdrJsonToXml {
 			logger.log(Level.WARNING, () -> String.format("[ALERT][FdrJsonToXml][LAST_RETRY] Performing last retry for event ingestion: InvocationId [%s]", context.getInvocationId()));
 		}
 
-		String message = new String(Base64.getDecoder().decode(b64Message), StandardCharsets.UTF_8);
-
+		String message = "";
 		try {
-
+			message = new String(Base64.getDecoder().decode(b64Message), StandardCharsets.UTF_8);
+			
 			// read json
 			ObjectMapper objectMapper = new ObjectMapper();
 			FdrMessage fdrMessage = objectMapper.readValue(message, FdrMessage.class);
