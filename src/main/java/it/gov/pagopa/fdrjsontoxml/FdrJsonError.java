@@ -68,7 +68,7 @@ public class FdrJsonError {
 			String partitionKey = request.getQueryParameters().get("partitionKey");
 			String rowKey = request.getQueryParameters().get("rowKey");
 			TableClient tableClient = getTableServiceClient().getTableClient(tableName);
-			String message = null;
+			String message;
 			if(partitionKey != null && rowKey != null){
 				message = "Retrieve a single entity with [partitionKey="+partitionKey+"] [rowKey="+rowKey+"]";
 				logger.info(message);
