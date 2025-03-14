@@ -1,4 +1,4 @@
-package it.gov.pagopa.fdrjsontoxml;
+package it.gov.pagopa.fdrjsontoxml.exception;
 
 public enum ErrorEnum {
     GENERIC_ERROR,
