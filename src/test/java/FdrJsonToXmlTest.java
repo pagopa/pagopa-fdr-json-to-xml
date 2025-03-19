@@ -1,7 +1,7 @@
 import com.azure.data.tables.TableClient;
 import com.azure.data.tables.TableServiceClient;
 import com.microsoft.azure.functions.ExecutionContext;
-import it.gov.pagopa.fdrjsontoxml.AppException;
+import it.gov.pagopa.fdr.conversion.exception.AppException;
 import it.gov.pagopa.fdrjsontoxml.FdrJsonToXml;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;

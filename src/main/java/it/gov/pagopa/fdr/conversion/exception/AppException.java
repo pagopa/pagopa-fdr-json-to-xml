@@ -1,4 +1,4 @@
-package it.gov.pagopa.fdrjsontoxml;
+package it.gov.pagopa.fdr.conversion.exception;
 
 import lombok.Getter;
 
