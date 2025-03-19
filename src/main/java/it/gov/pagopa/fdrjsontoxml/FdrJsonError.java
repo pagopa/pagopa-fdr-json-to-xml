@@ -12,6 +12,7 @@ import com.microsoft.azure.functions.*;
 import com.microsoft.azure.functions.annotation.AuthorizationLevel;
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.HttpTrigger;
+import it.gov.pagopa.fdr.conversion.util.AppConstant;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.time.Instant;

@@ -1,4 +1,4 @@
-package it.gov.pagopa.fdrjsontoxml;
+package it.gov.pagopa.fdr.conversion;
 
 import com.microsoft.azure.functions.*;
 import com.microsoft.azure.functions.annotation.AuthorizationLevel;

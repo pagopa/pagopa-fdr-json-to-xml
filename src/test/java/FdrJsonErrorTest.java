@@ -8,7 +8,7 @@ import com.microsoft.azure.functions.ExecutionContext;
 import com.microsoft.azure.functions.HttpRequestMessage;
 import com.microsoft.azure.functions.HttpResponseMessage;
 import com.microsoft.azure.functions.HttpStatus;
-import it.gov.pagopa.fdrjsontoxml.AppConstant;
+import it.gov.pagopa.fdr.conversion.util.AppConstant;
 import it.gov.pagopa.fdrjsontoxml.FdrJsonError;
 import it.gov.pagopa.fdrjsontoxml.FdrMessage;
 import lombok.SneakyThrows;

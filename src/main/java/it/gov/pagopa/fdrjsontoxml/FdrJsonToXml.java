@@ -5,12 +5,14 @@ import com.azure.data.tables.TableServiceClient;
 import com.azure.data.tables.TableServiceClientBuilder;
 import com.azure.data.tables.models.TableEntity;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.functions.ExecutionContext;
 import com.microsoft.azure.functions.annotation.ExponentialBackoffRetry;
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.QueueTrigger;
+import it.gov.pagopa.fdr.conversion.exception.AppException;
+import it.gov.pagopa.fdr.conversion.util.AppConstant;
+import it.gov.pagopa.fdr.conversion.util.ErrorEnum;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.openapitools.client.ApiClient;
 import org.openapitools.client.ApiException;
@@ -22,7 +24,6 @@ import java.time.Instant;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 
 /**
  * Azure Functions with Azure Queue trigger.
