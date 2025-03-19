@@ -1,8 +1,6 @@
-package it.gov.pagopa.fdrjsontoxml;
+package it.gov.pagopa.fdrjsontoxml.entity;
 
-import lombok.Builder;
 import lombok.Data;
-import lombok.Getter;
 
 @Data
 public class FdrMessage {

@@ -1,4 +1,4 @@
-package it.gov.pagopa.fdrjsontoxml;
+package it.gov.pagopa.fdrjsontoxml.util;
 
 public class AppConstant {
     public static final String columnFieldId = "uniqueId";
