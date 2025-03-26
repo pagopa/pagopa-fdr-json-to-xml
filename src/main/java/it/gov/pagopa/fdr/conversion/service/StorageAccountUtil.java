@@ -4,27 +4,34 @@ import com.azure.data.tables.TableClient;
 import com.azure.data.tables.TableServiceClient;
 import com.azure.data.tables.TableServiceClientBuilder;
 import com.azure.data.tables.models.TableEntity;
+import com.azure.storage.blob.BlobClient;
+import com.azure.storage.blob.BlobContainerClient;
+import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.microsoft.azure.functions.ExecutionContext;
+import it.gov.pagopa.fdr.conversion.BlobData;
 import it.gov.pagopa.fdr.conversion.util.ErrorTableColumns;
 import it.gov.pagopa.fdr.conversion.util.ErrorEnum;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class DeadLetter {
-    private static final String tableStorageConnString = System.getenv("TABLE_STORAGE_CONN_STRING");
-    private static final String tableName = System.getenv("ERROR_TABLE_NAME");
+public class StorageAccountUtil {
+    private static final String STORAGE_CONNECTION_STRING = System.getenv("TABLE_STORAGE_CONN_STRING");
+    private static final String ERROR_TABLE_NAME = System.getenv("ERROR_TABLE_NAME");
+    private static final String FDR3_FLOW_BLOB_CONTAINER_NAME = System.getenv("BLOB_STORAGE_FDR3_CONTAINER");
     private static TableServiceClient tableServiceClient;
+    private static BlobContainerClient blobContainerClient;
 
     private static TableServiceClient getTableServiceClient(){
         if(tableServiceClient == null){
             tableServiceClient = new TableServiceClientBuilder()
-                    .connectionString(tableStorageConnString)
+                    .connectionString(STORAGE_CONNECTION_STRING)
                     .buildClient();
-            tableServiceClient.createTableIfNotExists(tableName);
+            tableServiceClient.createTableIfNotExists(ERROR_TABLE_NAME);
         }
         return tableServiceClient;
     }
@@ -51,12 +58,33 @@ public class DeadLetter {
 
     public static void createTableEntity(ExecutionContext ctx, String pKey, String rowKey, Map<String,Object> values) {
         try {
-            TableClient tableClient = getTableServiceClient().getTableClient(tableName);
+            TableClient tableClient = getTableServiceClient().getTableClient(ERROR_TABLE_NAME);
             TableEntity entity = new TableEntity(pKey, rowKey);
             entity.setProperties(values);
             tableClient.createEntity(entity);
         } catch (Exception e) {
             ctx.getLogger().severe(String.format("[Exception][id=%s] Dead-letter write failed, class = %s, message = %s", ctx.getInvocationId(), e.getClass(), e.getMessage()));
         }
+    }
+
+    public static BlobData getBlobContent(String fileName) {
+        BlobContainerClient blobContainer = getBlobContainerClient();
+        BlobClient blobClient = blobContainer.getBlobClient(fileName);
+        Map<String, String> metadata = new HashMap<>(blobClient.getProperties().getMetadata());
+        return BlobData.builder()
+                .fileName(fileName)
+                .metadata(metadata)
+                .content(blobClient.downloadContent().toBytes())
+                .build();
+    }
+
+    private static BlobContainerClient getBlobContainerClient() {
+        if (blobContainerClient == null) {
+            blobContainerClient = new BlobServiceClientBuilder()
+                    .connectionString(STORAGE_CONNECTION_STRING)
+                    .buildClient()
+                    .getBlobContainerClient(FDR3_FLOW_BLOB_CONTAINER_NAME);
+        }
+        return blobContainerClient;
     }
 }

@@ -6,7 +6,7 @@ import com.microsoft.azure.functions.annotation.*;
 import feign.Feign;
 import feign.FeignException;
 import it.gov.pagopa.fdr.conversion.client.FdR1Client;
-import it.gov.pagopa.fdr.conversion.service.DeadLetter;
+import it.gov.pagopa.fdr.conversion.service.StorageAccountUtil;
 import it.gov.pagopa.fdr.conversion.util.ErrorEnum;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,7 +33,7 @@ public class FdrConversionBlobTrigger {
      */
     @FunctionName("BlobEventProcessor")
     @ExponentialBackoffRetry(maxRetryCount = 10, maximumInterval = "00:00:30", minimumInterval = "00:00:01")
-    public void process (
+    public boolean process (
             @BlobTrigger(
                     name = "Fdr3BlobTrigger",
                     dataType = "binary",
@@ -46,7 +46,7 @@ public class FdrConversionBlobTrigger {
 
         // Ignore the blob if it does not contain the elaborate key or if it isn't true
         if (!Boolean.parseBoolean(blobMetadata.getOrDefault(ELABORATE_KEY, "false")))
-            return;
+            return false;
 
         // Start ConversionFdr3Blob execution
         Logger logger = context.getLogger();
@@ -57,8 +57,7 @@ public class FdrConversionBlobTrigger {
         try {
             FdR1Client fdR1Client = Feign.builder().target(FdR1Client.class, fdrFase1BaseUrl);
             fdR1Client.postConversion(fdrFase1ApiKey, getPayload(content));
-            logger.info(String.format("[%s][id=%s] %s, response-status = %s, message = %s",
-                    fn, context.getInvocationId()));
+            logger.info(String.format("[%s][id=%s] Successful conversion call to FdR1", fn, context.getInvocationId()));
         } catch (FeignException e) {
             logger.severe(String.format("[Exception][%s][id=%s] %s, response-status = %s, message = %s",
                     fn, context.getInvocationId(), e.getClass(), e.status(), e.getMessage()));
@@ -70,6 +69,7 @@ public class FdrConversionBlobTrigger {
             deadLetter(context, blobName, blobMetadata, ex.getMessage(), ErrorEnum.GENERIC_ERROR, "generic-error", ex);
             throw ex;
         }
+        return true;
     }
 
     // Create JSON object with the base64 encoded payload
@@ -89,7 +89,7 @@ public class FdrConversionBlobTrigger {
         if (retryIndex >= (MAX_RETRY_COUNT-1)) {
             logger.log(Level.WARNING, () -> String.format("[ALERT][%s][LAST_RETRY][DEAD-LETTER] Performed last retry for event ingestion: InvocationId [%s]",
                     fn, context.getInvocationId()));
-            DeadLetter.sendToErrorTable(context, blob, metadata, message, errorEnum, response, e);
+            StorageAccountUtil.sendToErrorTable(context, blob, metadata, message, errorEnum, response, e);
         }
     }
 }

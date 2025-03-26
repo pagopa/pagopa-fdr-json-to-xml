@@ -154,4 +154,4 @@ httptrigger:
     WEBSITE_SITE_NAME: "pagopafdrjsontoxml-httptrigger" # required to show cloud role name in application insights
     AzureFunctionsWebHost__hostid: "fdr-json-to-xml-http-trigger"
     AzureFunctionsJobHost__functions__0: "Info"
-    # AzureFunctionsJobHost__functions__1: "XmlErrorRetry" todo
+    # AzureFunctionsJobHost__functions__1: "FDR3ErrorRetry" todo
