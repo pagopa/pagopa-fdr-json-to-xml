@@ -6,8 +6,8 @@ import feign.RequestLine;
 
 public interface FdR1Client {
 
-    // Call POST /conversion/fdr3 with the JSON body
-    @RequestLine("POST /conversion/fdr3")
+    // Call POST /convert/fdr3 with the JSON body
+    @RequestLine("POST /convert/fdr3")
     @Headers({
             "Content-Type: application/json",
             "Ocp-Apim-Subscription-Key: {subscriptionKey}"

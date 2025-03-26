@@ -85,7 +85,7 @@ public class FdrConversionBlobTriggerTest {
                 .when(
                         request()
                                 .withMethod("POST")
-                                .withPath("/conversion/fdr3")
+                                .withPath("/convert/fdr3")
                                 .withHeader("Content-Type", "application/json"), exactly(1))
                 .respond(request -> {
                             // Extract request body

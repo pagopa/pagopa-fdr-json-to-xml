@@ -16,7 +16,7 @@ import java.util.UUID;
 
 public class DeadLetter {
     private static final String tableStorageConnString = System.getenv("TABLE_STORAGE_CONN_STRING");
-    private static final String tableName = System.getenv("TABLE_STORAGE_TABLE_NAME");
+    private static final String tableName = System.getenv("ERROR_TABLE_NAME");
     private static TableServiceClient tableServiceClient;
 
     private static TableServiceClient getTableServiceClient(){

@@ -19,6 +19,8 @@ import java.util.logging.Logger;
 public class FdrConversionBlobTrigger {
     private static final String fn = "FdR3-to-FdR1";
     private static final Integer MAX_RETRY_COUNT = 10;
+    private static final String SERVICE_ID_KEY = "serviceIdentifier";
+    private static final String SERVICE_ID_TARGET = "FDR03";
     public String fdrFase1BaseUrl = System.getenv("FDR_FASE1_BASE_URL");
     private final String fdrFase1ApiKey = System.getenv("FDR_FASE1_API_KEY");
 
@@ -42,6 +44,11 @@ public class FdrConversionBlobTrigger {
             @BindingName("blobName") String blobName,
             @BindingName("Metadata") Map<String, String> blobMetadata,
             final ExecutionContext context) {
+
+        // Ignore the blob if it does not contain the serviceIdentifier key or if it is not of type FDR03
+        if(!(blobMetadata.containsKey(SERVICE_ID_KEY) && blobMetadata.get(SERVICE_ID_KEY).equals(SERVICE_ID_TARGET)))
+            return;
+
         // Start ConversionFdr3Blob execution
         Logger logger = context.getLogger();
         int retryIndex = context.getRetryContext() == null ? -1 : context.getRetryContext().getRetrycount();
@@ -51,6 +58,8 @@ public class FdrConversionBlobTrigger {
         try {
             FdR1Client fdR1Client = Feign.builder().target(FdR1Client.class, fdrFase1BaseUrl);
             fdR1Client.postConversion(fdrFase1ApiKey, getPayload(content));
+            logger.info(String.format("[%s][id=%s] %s, response-status = %s, message = %s",
+                    fn, context.getInvocationId()));
         } catch (FeignException e) {
             logger.severe(String.format("[Exception][%s][id=%s] %s, response-status = %s, message = %s",
                     fn, context.getInvocationId(), e.getClass(), e.status(), e.getMessage()));
