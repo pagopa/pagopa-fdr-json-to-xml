@@ -19,8 +19,7 @@ import java.util.logging.Logger;
 public class FdrConversionBlobTrigger {
     private static final String fn = "FdR3-to-FdR1";
     private static final Integer MAX_RETRY_COUNT = 10;
-    private static final String SERVICE_ID_KEY = "serviceIdentifier";
-    private static final String SERVICE_ID_TARGET = "FDR03";
+    private static final String ELABORATE_KEY = "elaborate";
     public String fdrFase1BaseUrl = System.getenv("FDR_FASE1_BASE_URL");
     private final String fdrFase1ApiKey = System.getenv("FDR_FASE1_API_KEY");
 
@@ -32,7 +31,7 @@ public class FdrConversionBlobTrigger {
      * @param blobMetadata
      * @param context
      */
-    @FunctionName("ConversionFdr3Blob")
+    @FunctionName("BlobEventProcessor")
     @ExponentialBackoffRetry(maxRetryCount = 10, maximumInterval = "00:00:30", minimumInterval = "00:00:01")
     public void process (
             @BlobTrigger(
@@ -45,8 +44,8 @@ public class FdrConversionBlobTrigger {
             @BindingName("Metadata") Map<String, String> blobMetadata,
             final ExecutionContext context) {
 
-        // Ignore the blob if it does not contain the serviceIdentifier key or if it is not of type FDR03
-        if(!(blobMetadata.containsKey(SERVICE_ID_KEY) && blobMetadata.get(SERVICE_ID_KEY).equals(SERVICE_ID_TARGET)))
+        // Ignore the blob if it does not contain the elaborate key or if it isn't true
+        if (!Boolean.parseBoolean(blobMetadata.getOrDefault(ELABORATE_KEY, "false")))
             return;
 
         // Start ConversionFdr3Blob execution
