@@ -1,15 +1,23 @@
 import com.microsoft.azure.functions.ExecutionContext;
+import com.microsoft.azure.functions.RetryContext;
+import com.microsoft.azure.functions.RpcException;
 import feign.FeignException;
 import it.gov.pagopa.fdr.conversion.FdrConversionBlobTrigger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockserver.client.MockServerClient;
 import org.mockserver.model.HttpResponse;
+import shaded_package.org.apache.commons.io.IOUtils;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.logging.Logger;
 
@@ -21,30 +29,55 @@ import static org.mockserver.model.HttpRequest.request;
 public class FdrConversionBlobTriggerTest {
 
     private static final String TEST_URL = "http://localhost:8080";
-    private static final ExecutionContext context = createContext();
+    private ExecutionContext context;
 
-    @Spy
-    FdrConversionBlobTrigger fdrConversionFunction;
+    FdrConversionBlobTrigger fdrConversionFunction = new FdrConversionBlobTrigger();
 
     @BeforeAll
     static void beforeAll() {
         startClientAndServer(8080);
     }
 
+    @BeforeEach
+    void beforeEach() {
+        context = createContext(1);
+    }
+
     @Test
     void processOk() {
-        byte[] content = "todo".getBytes();
+        byte[] content = "test".getBytes();
         createMockClient(200);
-        fdrConversionFunction.setFdrFase1BaseUrl(TEST_URL);
+        fdrConversionFunction.fdrFase1BaseUrl = TEST_URL;
         fdrConversionFunction.process(content, "blob-name-1", new HashMap<>(), context);
     }
 
     @Test
     void processFail() {
+        byte[] content = "test".getBytes();
+        createMockClient(500);
+        fdrConversionFunction.fdrFase1BaseUrl = TEST_URL;
+        Assertions.assertThrows(FeignException.class, () -> fdrConversionFunction.process(content, "blob-name-1", new HashMap<>(), context));
+    }
+
+    @Test
+    void retryTest() {
+        context = createContext(9);
         byte[] content = "todo".getBytes();
         createMockClient(500);
-        fdrConversionFunction.setFdrFase1BaseUrl(TEST_URL);
+        fdrConversionFunction.fdrFase1BaseUrl = TEST_URL;
         Assertions.assertThrows(FeignException.class, () -> fdrConversionFunction.process(content, "blob-name-1", new HashMap<>(), context));
+    }
+
+    @Test
+    void payloadGenerationTest() throws IOException {
+        // test base64 content (.zip file) codification and the JSON conversion (expected JSON file)
+        InputStream is = new FileInputStream("./src/test/resources/test-1-content.json.zip");
+        byte[] content = IOUtils.toByteArray(is);
+        String actualPayload = FdrConversionBlobTrigger.getPayload(content);
+        Path expectedPath = Path.of("./src/test/resources/test-1-expected.json");
+        String expectedPayload = Files.readString(expectedPath);
+
+        Assertions.assertEquals(expectedPayload, actualPayload);
     }
 
     public static void createMockClient(Integer status) {
@@ -53,7 +86,7 @@ public class FdrConversionBlobTriggerTest {
                         request()
                                 .withMethod("POST")
                                 .withPath("/conversion/fdr3")
-                                .withHeader("Content-Encoding", "gzip"), exactly(1))
+                                .withHeader("Content-Type", "application/json"), exactly(1))
                 .respond(request -> {
                             // Extract request body
                             String requestBody = request.getBodyAsString();
@@ -65,7 +98,7 @@ public class FdrConversionBlobTriggerTest {
                         });
     }
 
-    private static ExecutionContext createContext() {
+    private static ExecutionContext createContext(int retry) {
         return new ExecutionContext() {
             @Override
             public Logger getLogger() {
@@ -80,6 +113,26 @@ public class FdrConversionBlobTriggerTest {
             @Override
             public String getFunctionName() {
                 return "test-function-name";
+            }
+
+            @Override
+            public RetryContext getRetryContext() {
+                return new RetryContext() {
+                    @Override
+                    public int getRetrycount() {
+                        return retry;
+                    }
+
+                    @Override
+                    public int getMaxretrycount() {
+                        return 100;
+                    }
+
+                    @Override
+                    public RpcException getException() {
+                        return null;
+                    }
+                };
             }
         };
     }

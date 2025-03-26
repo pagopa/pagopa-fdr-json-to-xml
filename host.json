@@ -5,20 +5,19 @@
     "version": "[4.0.0, 5.0.0)"
   },
   "extensions": {
-    "tracing": {
-      "traceInputsAndOutputs": false,
-      "traceReplayEvents": false
-    },
     "http": {
       "routePrefix": ""
+    },
+    "blobs": {
+      "maxDegreeOfParallelism": 1,
+      "poisonBlobThreshold": 2
     }
   },
-  "functions": [ "Info", "QueueFdrJsonToXmlEventProcessor", "JsonErrorRetry" ],
+  "functions": [ "Info", "ConversionFdr3Blob"],
   "logging": {
     "logLevel": {
       "default": "Error",
-      "Function.QueueFdrJsonToXmlEventProcessor": "Information",
-      "Function.JsonErrorRetry": "Information"
+      "Function.ConversionFdr3Blob": "Information"
     },
     "applicationInsights": {
       "samplingSettings": {

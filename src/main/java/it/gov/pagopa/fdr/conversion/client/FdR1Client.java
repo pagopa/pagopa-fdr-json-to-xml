@@ -6,11 +6,11 @@ import feign.RequestLine;
 
 public interface FdR1Client {
 
-    // Call POST /conversion/fdr3 with the required headers for GZIP
+    // Call POST /conversion/fdr3 with the JSON body
     @RequestLine("POST /conversion/fdr3")
     @Headers({
-            "Content-Encoding: gzip",
+            "Content-Type: application/json",
             "Ocp-Apim-Subscription-Key: {subscriptionKey}"
     })
-    void postGzipFile(@Param("subscriptionKey") String subscriptionKey, byte[] gzipFile);
+    void postConversion(@Param("subscriptionKey") String subscriptionKey, String payload);
 }
