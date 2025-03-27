@@ -19,6 +19,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
@@ -48,7 +49,7 @@ public class FdrConversionBlobTriggerTest {
         byte[] content = "test".getBytes();
         createMockClient(200);
         fdrConversionFunction.fdrFase1BaseUrl = TEST_URL;
-        fdrConversionFunction.process(content, "blob-name-1", new HashMap<>(), context);
+        fdrConversionFunction.process(content, "blob-name-1", Map.of("elaborate", "true"), context);
     }
 
     @Test
@@ -56,7 +57,8 @@ public class FdrConversionBlobTriggerTest {
         byte[] content = "test".getBytes();
         createMockClient(500);
         fdrConversionFunction.fdrFase1BaseUrl = TEST_URL;
-        Assertions.assertThrows(FeignException.class, () -> fdrConversionFunction.process(content, "blob-name-1", new HashMap<>(), context));
+        Assertions.assertThrows(FeignException.class, () -> fdrConversionFunction.process(content, "blob-name-1",
+                Map.of("elaborate", "true"), context));
     }
 
     @Test
@@ -65,7 +67,8 @@ public class FdrConversionBlobTriggerTest {
         byte[] content = "todo".getBytes();
         createMockClient(500);
         fdrConversionFunction.fdrFase1BaseUrl = TEST_URL;
-        Assertions.assertThrows(FeignException.class, () -> fdrConversionFunction.process(content, "blob-name-1", new HashMap<>(), context));
+        Assertions.assertThrows(FeignException.class, () -> fdrConversionFunction.process(content, "blob-name-1",
+                Map.of("elaborate", "true"), context));
     }
 
     @Test
