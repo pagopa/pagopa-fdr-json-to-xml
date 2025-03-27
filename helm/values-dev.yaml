@@ -135,23 +135,23 @@ blobtrigger:
 #    AzureFunctionsWebHost__hostid: "fdr-json-to-xml-queue-trigger"
 #    AzureFunctionsJobHost__functions__0: "QueueEventProcessor"
 # HTTP TRIGGER FUNCTION
-httptrigger:
-  !!merge <<: *microservice-chart
-  ingress:
-    !!merge <<: *ingress
-  autoscaling:
-    !!merge <<: *autoscaling
-  resources:
-    !!merge <<: *resources
-    requests:
-      memory: "100Mi"
-      cpu: "0.1"
-    limits:
-      memory: "768Mi"
-      cpu: "0.40"
-  envConfig:
-    !!merge <<: *envConfig
-    WEBSITE_SITE_NAME: "pagopafdrjsontoxml-httptrigger" # required to show cloud role name in application insights
-    AzureFunctionsWebHost__hostid: "fdr-json-to-xml-http-trigger"
-    AzureFunctionsJobHost__functions__0: "Info"
-    # AzureFunctionsJobHost__functions__1: "FDR3ErrorRetry" todo
+#httptrigger:
+#  !!merge <<: *microservice-chart
+#  ingress:
+#    !!merge <<: *ingress
+#  autoscaling:
+#    !!merge <<: *autoscaling
+#  resources:
+#    !!merge <<: *resources
+#    requests:
+#      memory: "100Mi"
+#      cpu: "0.1"
+#    limits:
+#      memory: "768Mi"
+#      cpu: "0.40"
+#  envConfig:
+#    !!merge <<: *envConfig
+#    WEBSITE_SITE_NAME: "pagopafdrjsontoxml-httptrigger" # required to show cloud role name in application insights
+#    AzureFunctionsWebHost__hostid: "fdr-json-to-xml-http-trigger"
+#    AzureFunctionsJobHost__functions__0: "Info"
+#    # AzureFunctionsJobHost__functions__1: "FDR3ErrorRetry" todo
