@@ -36,7 +36,7 @@ on:
         default: false
 
 env:
-  APP_NAME: pagopafdrjsontoxml
+  APP_NAME: pagopa-fdr-json-to-xml
 
 
 permissions:
