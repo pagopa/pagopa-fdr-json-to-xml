@@ -2,7 +2,8 @@ package it.gov.pagopa.fdr.conversion;
 
 import com.microsoft.azure.functions.*;
 import com.microsoft.azure.functions.annotation.*;
-import it.gov.pagopa.fdr.conversion.service.StorageAccountUtil;
+import it.gov.pagopa.fdr.conversion.model.BlobData;
+import it.gov.pagopa.fdr.conversion.util.StorageAccountUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;

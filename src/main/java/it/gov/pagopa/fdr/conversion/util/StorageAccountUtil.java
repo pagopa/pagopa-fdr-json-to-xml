@@ -1,4 +1,4 @@
-package it.gov.pagopa.fdr.conversion.service;
+package it.gov.pagopa.fdr.conversion.util;
 
 import com.azure.data.tables.TableClient;
 import com.azure.data.tables.TableServiceClient;
@@ -8,9 +8,9 @@ import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.microsoft.azure.functions.ExecutionContext;
-import it.gov.pagopa.fdr.conversion.BlobData;
-import it.gov.pagopa.fdr.conversion.util.ErrorTableColumns;
-import it.gov.pagopa.fdr.conversion.util.ErrorEnum;
+import it.gov.pagopa.fdr.conversion.model.BlobData;
+import it.gov.pagopa.fdr.conversion.model.ErrorEnum;
+import it.gov.pagopa.fdr.conversion.model.ErrorTableColumns;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.time.Instant;

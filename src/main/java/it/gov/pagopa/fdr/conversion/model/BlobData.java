@@ -1,4 +1,4 @@
-package it.gov.pagopa.fdr.conversion;
+package it.gov.pagopa.fdr.conversion.model;
 
 import lombok.*;
 

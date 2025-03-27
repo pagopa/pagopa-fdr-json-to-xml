@@ -1,4 +1,4 @@
-package it.gov.pagopa.fdr.conversion.util;
+package it.gov.pagopa.fdr.conversion.model;
 
 public class ErrorTableColumns {
     public static final String columnFieldId = "uniqueId";

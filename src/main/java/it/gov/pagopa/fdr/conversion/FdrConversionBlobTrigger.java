@@ -6,8 +6,8 @@ import com.microsoft.azure.functions.annotation.*;
 import feign.Feign;
 import feign.FeignException;
 import it.gov.pagopa.fdr.conversion.client.FdR1Client;
-import it.gov.pagopa.fdr.conversion.service.StorageAccountUtil;
-import it.gov.pagopa.fdr.conversion.util.ErrorEnum;
+import it.gov.pagopa.fdr.conversion.util.StorageAccountUtil;
+import it.gov.pagopa.fdr.conversion.model.ErrorEnum;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Base64;
