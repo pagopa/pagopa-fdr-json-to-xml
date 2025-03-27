@@ -17,7 +17,7 @@
   "logging": {
     "logLevel": {
       "default": "Error",
-      "Function.ConversionFdr3Blob": "Information"
+      "Function.BlobEventProcessor": "Information"
     },
     "applicationInsights": {
       "samplingSettings": {
