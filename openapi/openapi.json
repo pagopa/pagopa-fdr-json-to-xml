@@ -2,13 +2,15 @@
   "openapi": "3.0.1",
   "info": {
     "title": "FdR - JSON to XML ${service}",
-    "version": "version",
+    "version": "0.2.2-12-PAGOPA-2745-conversion-function",
     "description": "FDR JSON to XML API REST"
   },
   "paths": {
     "/info": {
       "get": {
-        "tags" : [ "Home" ],
+        "tags": [
+          "Home"
+        ],
         "summary": "Get API Info",
         "operationId": "Info",
         "responses": {
@@ -27,7 +29,9 @@
     },
     "/errors/{blobName}/retry": {
       "get": {
-        "tags" : [ "Retry-APIs" ],
+        "tags": [
+          "Retry-APIs"
+        ],
         "summary": "Retry XML to JSON Error Processing",
         "operationId": "FDR3ErrorConversionRetry",
         "parameters": [
@@ -67,5 +71,3 @@
     }
   }
 }
-
-
