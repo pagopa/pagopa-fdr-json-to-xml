@@ -119,8 +119,8 @@ blobtrigger:
   envConfig:
     !!merge <<: *envConfig
     WEBSITE_SITE_NAME: "pagopafdrjsontoxml-blobtrigger" # required to show cloud role name in application insights
-    AzureFunctionsWebHost__hostid: "fdr-json-to-xml-blob-trigger"
-    AzureFunctionsJobHost__functions__0: "BlobEventProcessor"
+#    AzureFunctionsWebHost__hostid: "fdr-json-to-xml-blob-trigger"
+#    AzureFunctionsJobHost__functions__0: "BlobEventProcessor"
 # QUEUE TRIGGER FUNCTION todo
 #queuetrigger:
 #  !!merge <<: *microservice-chart

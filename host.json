@@ -13,7 +13,7 @@
       "poisonBlobThreshold": 2
     }
   },
-  "functions": [ "Info", "ConversionFdr3Blob"],
+  "functions": [ "Info", "BlobEventProcessor"],
   "logging": {
     "logLevel": {
       "default": "Error",
