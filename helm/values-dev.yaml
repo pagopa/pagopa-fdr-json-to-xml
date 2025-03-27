@@ -108,17 +108,26 @@ microservice-chart: &microservice-chart
                   - "true"
   canaryDelivery:
     create: false
-# BLOB TRIGGER FUNCTION
-blobtrigger:
+# ALL TRIGGER FUNCTION
+triggers:
   !!merge <<: *microservice-chart
   ingress:
     !!merge <<: *ingress
-    # path: /pagopa-fdr-json-to-xml/blobtrigger-notuser/(.*)
   autoscaling:
     !!merge <<: *autoscaling
   envConfig:
     !!merge <<: *envConfig
     WEBSITE_SITE_NAME: "pagopafdrjsontoxml" # required to show cloud role name in application insights
+# BLOB TRIGGER FUNCTION todo
+#blobtrigger:
+#  !!merge <<: *microservice-chart
+#  ingress:
+#    !!merge <<: *ingress
+#    path: /pagopa-fdr-json-to-xml/blobtrigger-notuser/(.*)
+#  autoscaling:
+#    !!merge <<: *autoscaling
+#  envConfig:
+#    !!merge <<: *envConfig
 #    WEBSITE_SITE_NAME: "pagopafdrjsontoxml-blobtrigger" # required to show cloud role name in application insights
 #    AzureFunctionsWebHost__hostid: "fdr-json-to-xml-blob-trigger"
 #    AzureFunctionsJobHost__functions__0: "BlobEventProcessor"
