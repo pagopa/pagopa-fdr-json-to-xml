@@ -76,7 +76,7 @@ microservice-chart: &microservice-chart
     BLOB_STORAGE_FDR3_CONTAINER: "fdr3-flows"
     ERROR_TABLE_NAME: "fdr3-conversion-error"
     # MAX_RETRY_COUNT: "5"
-    # ASPNETCORE_URLS: "http://*:8080"
+    ASPNETCORE_URLS: "http://*:8080"
     FUNCTIONS_SECRETS_PATH: "/tmp/secrets"
     AzureFunctionsWebHost__hostid: "fdr-json-to-xml"
   envFieldRef:
