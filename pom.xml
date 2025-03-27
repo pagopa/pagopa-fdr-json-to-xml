@@ -262,7 +262,7 @@
                     <region>westus</region>
                     <runtime>
                         <os>linux</os>
-                        <javaVersion>11</javaVersion>
+                        <javaVersion>17</javaVersion>
                     </runtime>
                 </configuration>
                 <executions>
