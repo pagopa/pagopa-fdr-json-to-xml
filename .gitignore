@@ -40,3 +40,4 @@ obj/
 
 # Environment
 **.env
+**.terraform
