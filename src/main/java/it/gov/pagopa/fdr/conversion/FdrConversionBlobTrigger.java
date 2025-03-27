@@ -43,15 +43,15 @@ public class FdrConversionBlobTrigger {
             @BindingName("blobName") String blobName,
             @BindingName("Metadata") Map<String, String> blobMetadata,
             final ExecutionContext context) {
-
-        // Ignore the blob if it does not contain the elaborate key or if it isn't true
-        if (!Boolean.parseBoolean(blobMetadata.getOrDefault(ELABORATE_KEY, "false")))
-            return false;
-
-        // Start ConversionFdr3Blob execution
         Logger logger = context.getLogger();
         int retryIndex = context.getRetryContext() == null ? -1 : context.getRetryContext().getRetrycount();
         logger.info(String.format("[%s] Triggered, blob-name = %s, blob-metadata = %s, retry = %s", fn, blobName, blobMetadata, retryIndex));
+
+        // Ignore the blob if it does not contain the elaborate key or if it isn't true
+        if (!Boolean.parseBoolean(blobMetadata.getOrDefault(ELABORATE_KEY, "false"))) {
+            logger.info(String.format("[%s] Skipped, blob-name = %s, blob-metadata = %s, retry = %s", fn, blobName, blobMetadata, retryIndex));
+            return false;
+        }
 
         // Retry is configured at function level, we always make the exception throw to trigger that retry
         try {

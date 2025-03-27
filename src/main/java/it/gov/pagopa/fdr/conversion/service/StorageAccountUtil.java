@@ -44,7 +44,7 @@ public class StorageAccountUtil {
         // for the same blob name following manual retries, we could not track the second error event
         errorMap.put(ErrorTableColumns.columnFieldId, id);
         errorMap.put(ErrorTableColumns.columnFieldBlob, blob);
-        errorMap.put(ErrorTableColumns.columnFieldBlobMetadata, metadata);
+        errorMap.put(ErrorTableColumns.columnFieldSessionId, metadata.getOrDefault("sessionId", "not-found"));
         errorMap.put(ErrorTableColumns.columnFieldCreated, now);
         errorMap.put(ErrorTableColumns.columnFieldMessage, message);
         errorMap.put(ErrorTableColumns.columnFieldErrorType, errorEnum.name());
