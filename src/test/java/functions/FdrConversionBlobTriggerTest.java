@@ -1,6 +1,6 @@
+package functions;
+
 import com.microsoft.azure.functions.ExecutionContext;
-import com.microsoft.azure.functions.RetryContext;
-import com.microsoft.azure.functions.RpcException;
 import feign.FeignException;
 import it.gov.pagopa.fdr.conversion.FdrConversionBlobTrigger;
 import org.junit.jupiter.api.Assertions;
@@ -18,9 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.matchers.Times.exactly;
@@ -49,15 +47,17 @@ public class FdrConversionBlobTriggerTest {
     void processOk() {
         byte[] content = "test".getBytes();
         createMockClient(200);
-        fdrConversionFunction.fdrFase1BaseUrl = TEST_URL;
-        fdrConversionFunction.process(content, "blob-name-1", Map.of("elaborate", "true"), context);
+        fdrConversionFunction.FDR_FASE1_BASE_URL = TEST_URL;
+        boolean processResult = fdrConversionFunction
+                .process(content, "blob-name-1", Map.of("elaborate", "true"), context);
+        Assertions.assertTrue(processResult);
     }
 
     @Test
     void processFail() {
         byte[] content = "test".getBytes();
         createMockClient(500);
-        fdrConversionFunction.fdrFase1BaseUrl = TEST_URL;
+        fdrConversionFunction.FDR_FASE1_BASE_URL = TEST_URL;
         Assertions.assertThrows(FeignException.class, () -> fdrConversionFunction.process(content, "blob-name-1",
                 Map.of("elaborate", "true"), context));
     }
@@ -67,7 +67,7 @@ public class FdrConversionBlobTriggerTest {
         context = createContext(9);
         byte[] content = "todo".getBytes();
         createMockClient(500);
-        fdrConversionFunction.fdrFase1BaseUrl = TEST_URL;
+        fdrConversionFunction.FDR_FASE1_BASE_URL = TEST_URL;
         Assertions.assertThrows(FeignException.class, () -> fdrConversionFunction.process(content, "blob-name-1",
                 Map.of("elaborate", "true"), context));
     }

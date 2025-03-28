@@ -20,8 +20,8 @@ public class FdrConversionBlobTrigger {
     private static final String fn = "FdR3-to-FdR1";
     private static final Integer MAX_RETRY_COUNT = 10;
     private static final String ELABORATE_KEY = "elaborate";
-    public String fdrFase1BaseUrl = System.getenv("FDR_FASE1_BASE_URL");
-    private final String fdrFase1ApiKey = System.getenv("FDR_FASE1_API_KEY");
+    public String FDR_FASE1_BASE_URL = System.getenv("FDR_FASE1_BASE_URL");
+    private final String FDR_FASE1_API_KEY = System.getenv("FDR_FASE1_API_KEY");
 
     /**
      * The job of this function is to convert, i.e., store and save, the streams of FdR3 to FdR1.
@@ -55,8 +55,8 @@ public class FdrConversionBlobTrigger {
 
         // Retry is configured at function level, we always make the exception throw to trigger that retry
         try {
-            FdR1Client fdR1Client = Feign.builder().target(FdR1Client.class, fdrFase1BaseUrl);
-            fdR1Client.postConversion(fdrFase1ApiKey, getPayload(content));
+            FdR1Client fdR1Client = Feign.builder().target(FdR1Client.class, FDR_FASE1_BASE_URL);
+            fdR1Client.postConversion(FDR_FASE1_API_KEY, getPayload(content));
             logger.info(String.format("[%s][id=%s] Successful conversion call to FdR1", fn, context.getInvocationId()));
         } catch (FeignException e) {
             logger.severe(String.format("[Exception][%s][id=%s] %s, response-status = %s, message = %s",

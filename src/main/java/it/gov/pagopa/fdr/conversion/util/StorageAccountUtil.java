@@ -42,14 +42,14 @@ public class StorageAccountUtil {
         Map<String,Object> errorMap = new LinkedHashMap<>();
         // The id could also be the blob name, since it is unique, however in case we have an error from dead-letter 2 times
         // for the same blob name following manual retries, we could not track the second error event
-        errorMap.put(ErrorTableColumns.columnFieldId, id);
-        errorMap.put(ErrorTableColumns.columnFieldBlob, blob);
-        errorMap.put(ErrorTableColumns.columnFieldSessionId, metadata.getOrDefault("sessionId", "not-found"));
-        errorMap.put(ErrorTableColumns.columnFieldCreated, now);
-        errorMap.put(ErrorTableColumns.columnFieldMessage, message);
-        errorMap.put(ErrorTableColumns.columnFieldErrorType, errorEnum.name());
-        errorMap.put(ErrorTableColumns.columnFieldHttpErrorResposne, httpErrorResponse);
-        errorMap.put(ErrorTableColumns.columnFieldStackTrace, ExceptionUtils.getStackTrace(e));
+        errorMap.put(ErrorTableColumns.COLUMN_FIELD_ID, id);
+        errorMap.put(ErrorTableColumns.COLUMN_FIELD_BLOB, blob);
+        errorMap.put(ErrorTableColumns.COLUMN_FIELD_SESSION_ID, metadata.getOrDefault("sessionId", "not-found"));
+        errorMap.put(ErrorTableColumns.COLUMN_FIELD_CREATED, now);
+        errorMap.put(ErrorTableColumns.COLUMN_FIELD_MESSAGE, message);
+        errorMap.put(ErrorTableColumns.COLUMN_FIELD_ERROR_TYPE, errorEnum.name());
+        errorMap.put(ErrorTableColumns.COLUMN_FIELD_HTTP_ERROR_RESPOSNE, httpErrorResponse);
+        errorMap.put(ErrorTableColumns.COLUMN_FIELD_STACK_TRACE, ExceptionUtils.getStackTrace(e));
 
         String partitionKey = now.toString().substring(0,10);
 
