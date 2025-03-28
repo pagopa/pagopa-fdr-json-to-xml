@@ -43,7 +43,7 @@ public class FdrConversionBlobTrigger {
             @BindingName("blobName") String blobName,
             @BindingName("Metadata") Map<String, String> blobMetadata,
             final ExecutionContext context) {
-        Logger logger = context.getLogger();
+        Logger logger = context.getLogger() == null ? Logger.getLogger("BlobEventLogger") : context.getLogger();
         int retryIndex = context.getRetryContext() == null ? -1 : context.getRetryContext().getRetrycount();
         logger.info(String.format("[%s] Triggered, blob-name = %s, blob-metadata = %s, retry = %s", fn, blobName, blobMetadata, retryIndex));
 

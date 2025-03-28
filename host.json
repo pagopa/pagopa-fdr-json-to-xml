@@ -13,11 +13,12 @@
       "poisonBlobThreshold": 2
     }
   },
-  "functions": [ "Info", "BlobEventProcessor"],
+  "functions": [ "Info", "BlobEventProcessor", "ErrorRetryFunction"],
   "logging": {
     "logLevel": {
       "default": "Error",
-      "Function.BlobEventProcessor": "Information"
+      "Function.BlobEventProcessor": "Information",
+      "Function.ErrorRetryFunction": "Information"
     },
     "applicationInsights": {
       "samplingSettings": {
