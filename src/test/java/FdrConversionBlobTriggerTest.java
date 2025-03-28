@@ -25,6 +25,7 @@ import java.util.logging.Logger;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.matchers.Times.exactly;
 import static org.mockserver.model.HttpRequest.request;
+import static util.Utils.createContext;
 
 @ExtendWith(MockitoExtension.class)
 public class FdrConversionBlobTriggerTest {
@@ -99,44 +100,5 @@ public class FdrConversionBlobTriggerTest {
                                     .withStatusCode(status)
                                     .withBody("File received and processed successfully!");
                         });
-    }
-
-    private static ExecutionContext createContext(int retry) {
-        return new ExecutionContext() {
-            @Override
-            public Logger getLogger() {
-                return  Logger.getLogger("test");
-            }
-
-            @Override
-            public String getInvocationId() {
-                return "test-invocation-id";
-            }
-
-            @Override
-            public String getFunctionName() {
-                return "test-function-name";
-            }
-
-            @Override
-            public RetryContext getRetryContext() {
-                return new RetryContext() {
-                    @Override
-                    public int getRetrycount() {
-                        return retry;
-                    }
-
-                    @Override
-                    public int getMaxretrycount() {
-                        return 100;
-                    }
-
-                    @Override
-                    public RpcException getException() {
-                        return null;
-                    }
-                };
-            }
-        };
     }
 }

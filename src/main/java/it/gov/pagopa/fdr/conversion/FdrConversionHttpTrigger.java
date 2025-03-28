@@ -22,7 +22,7 @@ public class FdrConversionHttpTrigger {
         Logger logger = context.getLogger() == null ? Logger.getLogger("ErrorRetryFunction") : context.getLogger();
         try {
             // this function should read from the blob storage and send the request with the gzip file to FdR1
-            BlobData blobData = this.getBlobContent(blobName);
+            BlobData blobData = StorageAccountUtil.getBlobContent(blobName);
             FdrConversionBlobTrigger processor = new FdrConversionBlobTrigger();
             boolean processed = processor.process(blobData.getContent(), blobName, blobData.getMetadata(), context);
             if (processed) {
@@ -35,9 +35,5 @@ public class FdrConversionHttpTrigger {
                     context.getInvocationId(), e.getClass(), e.getMessage()));
             return request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR).body(HttpStatus.INTERNAL_SERVER_ERROR.toString()).build();
         }
-    }
-
-    public BlobData getBlobContent(String blobName) {
-        return StorageAccountUtil.getBlobContent(blobName);
     }
 }
