@@ -14,7 +14,7 @@ public class FdrConversionHttpTrigger {
     @FunctionName("ErrorRetryFunction")
     public HttpResponseMessage process (
             @HttpTrigger(name = "ErrorRetryFunctionHttpTrigger",
-                    methods = {HttpMethod.POST},
+                    methods = {HttpMethod.GET},
                     route = "errors/{blobName}/retry",
                     authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<Optional<String>> request,
             @BindingName("blobName") String blobName,
@@ -23,6 +23,9 @@ public class FdrConversionHttpTrigger {
         try {
             // this function should read from the blob storage and send the request with the gzip file to FdR1
             BlobData blobData = StorageAccountUtil.getBlobContent(blobName);
+            if(blobData == null) {
+                return request.createResponseBuilder(HttpStatus.NOT_FOUND).body(HttpStatus.NOT_FOUND.toString()).build();
+            }
             FdrConversionBlobTrigger processor = new FdrConversionBlobTrigger();
             boolean processed = processor.process(blobData.getContent(), blobName, blobData.getMetadata(), context);
             if (processed) {

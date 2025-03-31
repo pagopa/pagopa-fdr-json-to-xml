@@ -15,7 +15,7 @@
         <java.version>17</java.version>
         <azure.functions.maven.plugin.version>1.26.0</azure.functions.maven.plugin.version>
         <azure.functions.java.library.version>3.0.0</azure.functions.java.library.version>
-        <azure.blob.storage.version>12.30.0</azure.blob.storage.version>
+        <azure.blob.storage.version>12.26.1</azure.blob.storage.version>
         <functionAppName>pagopa-d-weu-fdr-json-to-xml-fn</functionAppName>
         <org.modelmapper>3.1.1</org.modelmapper>
         <jackson>2.15.2</jackson>
@@ -56,10 +56,6 @@
         <dependency>
             <groupId>com.azure</groupId>
             <artifactId>azure-data-tables</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.azure</groupId>
-            <artifactId>azure-storage-queue</artifactId>
         </dependency>
         <!-- End Azure -->
 

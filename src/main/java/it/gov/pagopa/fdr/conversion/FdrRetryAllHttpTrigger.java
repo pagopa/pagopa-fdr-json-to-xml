@@ -24,7 +24,7 @@ public class FdrRetryAllHttpTrigger {
     @FunctionName("ErrorRetryAllFunction")
     public HttpResponseMessage process (
             @HttpTrigger(name = "ErrorRetryAllFunctionHttpTrigger",
-                    methods = {HttpMethod.POST},
+                    methods = {HttpMethod.GET},
                     route = "errors/retry",
                     authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<Optional<String>> request,
             final ExecutionContext context) {

@@ -20,7 +20,8 @@ import java.util.Map;
 import java.util.UUID;
 
 public class StorageAccountUtil {
-    private static final String STORAGE_CONNECTION_STRING = System.getenv("TABLE_STORAGE_CONN_STRING");
+    private static final String TABLE_CONNECTION_STRING = System.getenv("TABLE_STORAGE_CONN_STRING");
+    private static final String BLOB_CONNECTION_STRING = System.getenv("FDR_SA_CONNECTION_STRING");
     private static final String ERROR_TABLE_NAME = System.getenv("ERROR_TABLE_NAME");
     private static final String FDR3_FLOW_BLOB_CONTAINER_NAME = System.getenv("BLOB_STORAGE_FDR3_CONTAINER");
     private static final String SESSION_ID_METADATA_KEY = "sessionId";
@@ -31,11 +32,21 @@ public class StorageAccountUtil {
     public static TableServiceClient getTableServiceClient(){
         if(tableServiceClient == null){
             tableServiceClient = new TableServiceClientBuilder()
-                    .connectionString(STORAGE_CONNECTION_STRING)
+                    .connectionString(TABLE_CONNECTION_STRING)
                     .buildClient();
             tableServiceClient.createTableIfNotExists(ERROR_TABLE_NAME);
         }
         return tableServiceClient;
+    }
+
+    private static BlobContainerClient getBlobContainerClient() {
+        if (blobContainerClient == null) {
+            blobContainerClient = new BlobServiceClientBuilder()
+                    .connectionString(BLOB_CONNECTION_STRING)
+                    .buildClient()
+                    .getBlobContainerClient(FDR3_FLOW_BLOB_CONTAINER_NAME);
+        }
+        return blobContainerClient;
     }
 
     public static void sendToErrorTable(ExecutionContext ctx, String blob, Map<String, String> metadata, String message, ErrorEnum errorEnum, String httpErrorResponse, Exception e){
@@ -79,21 +90,13 @@ public class StorageAccountUtil {
     public static BlobData getBlobContent(String fileName) {
         BlobContainerClient blobContainer = getBlobContainerClient();
         BlobClient blobClient = blobContainer.getBlobClient(fileName);
+        if(!blobClient.exists())
+            return null;
         Map<String, String> metadata = new HashMap<>(blobClient.getProperties().getMetadata());
         return BlobData.builder()
                 .fileName(fileName)
                 .metadata(metadata)
                 .content(blobClient.downloadContent().toBytes())
                 .build();
-    }
-
-    private static BlobContainerClient getBlobContainerClient() {
-        if (blobContainerClient == null) {
-            blobContainerClient = new BlobServiceClientBuilder()
-                    .connectionString(STORAGE_CONNECTION_STRING)
-                    .buildClient()
-                    .getBlobContainerClient(FDR3_FLOW_BLOB_CONTAINER_NAME);
-        }
-        return blobContainerClient;
     }
 }
