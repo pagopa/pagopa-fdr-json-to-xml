@@ -30,7 +30,8 @@ public class FdrRetryAllHttpTrigger {
             final ExecutionContext context) {
         Logger logger = context.getLogger() == null ? Logger.getLogger("ErrorRetryFunction") : context.getLogger();
         try {
-            PagedIterable<TableEntity> entities = StorageAccountUtil.getTableServiceClient().getTableClient("").listEntities();
+            PagedIterable<TableEntity> entities = StorageAccountUtil.getTableEntities();
+            assert entities != null;
 
             // Iterate through the pages of results
             for (PagedResponse<TableEntity> page : entities.iterableByPage()) {
@@ -40,21 +41,13 @@ public class FdrRetryAllHttpTrigger {
                     String blobName = (String) properties.get(ErrorTableColumns.COLUMN_FIELD_BLOB);
                     BlobData blobData = StorageAccountUtil.getBlobContent(blobName);
                     FdrConversionBlobTrigger processor = new FdrConversionBlobTrigger();
+                    assert blobData != null;
                     boolean processed = processor.process(blobData.getContent(), blobName, blobData.getMetadata(), context);
 
                     logger.info(String.format(
                             "[fn=%s][id=%s] Retry table entity processed = %s, PartitionKey = %s, RowKey = %s, Properties = %s, blobName = %s",
                             fn, context.getInvocationId(), processed, e.getPartitionKey(), e.getRowKey(), properties, blobName
                     ));
-                }
-
-                String continuationToken = page.getContinuationToken();
-                if (continuationToken != null) {
-                    logger.info(String.format("[fn=%s][id=%s] More pages available, continue with the token: %s",
-                            fn, context.getInvocationId(), continuationToken));
-                } else {
-                    System.out.println("No more pages available.");
-                    logger.info(String.format("[fn=%s][id=%s] No more pages available", fn, context.getInvocationId()));
                 }
             }
 

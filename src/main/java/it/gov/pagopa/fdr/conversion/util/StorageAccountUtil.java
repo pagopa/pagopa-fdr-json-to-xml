@@ -1,5 +1,6 @@
 package it.gov.pagopa.fdr.conversion.util;
 
+import com.azure.core.http.rest.PagedIterable;
 import com.azure.data.tables.TableClient;
 import com.azure.data.tables.TableServiceClient;
 import com.azure.data.tables.TableServiceClientBuilder;
@@ -98,5 +99,15 @@ public class StorageAccountUtil {
                 .metadata(metadata)
                 .content(blobClient.downloadContent().toBytes())
                 .build();
+    }
+
+    public static PagedIterable<TableEntity> getTableEntities() {
+        try {
+            return getTableServiceClient()
+                    .getTableClient(ERROR_TABLE_NAME)
+                    .listEntities();
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
