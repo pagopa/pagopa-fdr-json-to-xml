@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 @Slf4j
 public class FdrConversionBlobTrigger {
     private static final String fn = "FdR3-to-FdR1";
-    private static final Integer MAX_RETRY_COUNT = 10;
+    private static final Integer MAX_RETRY_COUNT = 4;
     private static final String ELABORATE_KEY = "elaborate";
     public String FDR_FASE1_BASE_URL = System.getenv("FDR_FASE1_BASE_URL");
     private final String FDR_FASE1_API_KEY = System.getenv("FDR_FASE1_API_KEY");
@@ -30,9 +30,15 @@ public class FdrConversionBlobTrigger {
      * @param blobName
      * @param blobMetadata
      * @param context
+     *
+     * Retry mechanism focus
+     * ExponentialBackoffRetry will perform N = 5 backoff retries multiplied by N = 1 retries
+     * via poisonBlobThreshold mechanism specified in the host.json,
+     * in total 5 retries and 1 write attempts on dead-letter that will overwrite the same record in the table.
+     * Specifically these will be the retry index values = 0, 1, 2, 3, 4
      */
     @FunctionName("BlobEventProcessor")
-    @ExponentialBackoffRetry(maxRetryCount = 10, maximumInterval = "00:00:30", minimumInterval = "00:00:01")
+    @ExponentialBackoffRetry(maxRetryCount = 4, maximumInterval = "00:05:00", minimumInterval = "00:00:10")
     public boolean process (
             @BlobTrigger(
                     name = "Fdr3BlobTrigger",
@@ -45,11 +51,12 @@ public class FdrConversionBlobTrigger {
             final ExecutionContext context) {
         Logger logger = context.getLogger() == null ? Logger.getLogger("BlobEventLogger") : context.getLogger();
         int retryIndex = context.getRetryContext() == null ? -1 : context.getRetryContext().getRetrycount();
-        logger.info(String.format("[%s] Triggered, blob-name = %s, blob-metadata = %s, retry = %s", fn, blobName, blobMetadata, retryIndex));
+        String iid = context.getInvocationId();
+        logger.info(String.format("[%s] Triggered, id = %s, blob-name = %s, blob-metadata = %s, retry = %s", fn, iid, blobName, blobMetadata, retryIndex));
 
         // Ignore the blob if it does not contain the elaborate key or if it isn't true
         if (!Boolean.parseBoolean(blobMetadata.getOrDefault(ELABORATE_KEY, "false"))) {
-            logger.info(String.format("[%s] Skipped, blob-name = %s, blob-metadata = %s, retry = %s", fn, blobName, blobMetadata, retryIndex));
+            logger.info(String.format("[%s] Skipped, id = %s, blob-name = %s, blob-metadata = %s, retry = %s", fn, iid, blobName, blobMetadata, retryIndex));
             return false;
         }
 
@@ -83,10 +90,10 @@ public class FdrConversionBlobTrigger {
 
     // Check retry index and save to dead-letter if max-retry has been reached
     private static void deadLetter(ExecutionContext context, String blob, Map<String, String> metadata, String message, ErrorEnum errorEnum, String response, Exception e) {
-        // the retry count ranges from 0 to MAX_RETRY_COUNT-1
+        // the retry count ranges from 0 to MAX_RETRY_COUNT
         int retryIndex = context.getRetryContext() == null ? -1 : context.getRetryContext().getRetrycount();
         Logger logger = context.getLogger();
-        if (retryIndex >= (MAX_RETRY_COUNT-1)) {
+        if (retryIndex >= MAX_RETRY_COUNT) {
             logger.log(Level.WARNING, () -> String.format("[ALERT][%s][LAST_RETRY][DEAD-LETTER] Performed last retry for event ingestion: InvocationId [%s]",
                     fn, context.getInvocationId()));
             StorageAccountUtil.sendToErrorTable(context, blob, metadata, message, errorEnum, response, e);

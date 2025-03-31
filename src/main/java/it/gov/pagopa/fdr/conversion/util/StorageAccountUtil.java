@@ -37,14 +37,14 @@ public class StorageAccountUtil {
     }
 
     public static void sendToErrorTable(ExecutionContext ctx, String blob, Map<String, String> metadata, String message, ErrorEnum errorEnum, String httpErrorResponse, Exception e){
-        String id = UUID.randomUUID().toString();
+        String defaultSessionId = "NA_"+UUID.randomUUID();
+        String sessionId = metadata.getOrDefault("sessionId", defaultSessionId);
         Instant now = Instant.now();
         Map<String,Object> errorMap = new LinkedHashMap<>();
         // The id could also be the blob name, since it is unique, however in case we have an error from dead-letter 2 times
         // for the same blob name following manual retries, we could not track the second error event
-        errorMap.put(ErrorTableColumns.COLUMN_FIELD_ID, id);
         errorMap.put(ErrorTableColumns.COLUMN_FIELD_BLOB, blob);
-        errorMap.put(ErrorTableColumns.COLUMN_FIELD_SESSION_ID, metadata.getOrDefault("sessionId", "not-found"));
+        errorMap.put(ErrorTableColumns.COLUMN_FIELD_SESSION_ID, sessionId);
         errorMap.put(ErrorTableColumns.COLUMN_FIELD_CREATED, now);
         errorMap.put(ErrorTableColumns.COLUMN_FIELD_MESSAGE, message);
         errorMap.put(ErrorTableColumns.COLUMN_FIELD_ERROR_TYPE, errorEnum.name());
@@ -53,7 +53,7 @@ public class StorageAccountUtil {
 
         String partitionKey = now.toString().substring(0,10);
 
-        createTableEntity(ctx, partitionKey, id, errorMap);
+        createTableEntity(ctx, partitionKey, sessionId, errorMap);
     }
 
     public static void createTableEntity(ExecutionContext ctx, String pKey, String rowKey, Map<String,Object> values) {

@@ -10,7 +10,7 @@
     },
     "blobs": {
       "maxDegreeOfParallelism": 1,
-      "poisonBlobThreshold": 2
+      "poisonBlobThreshold": 1
     }
   },
   "functions": [ "Info", "BlobEventProcessor", "ErrorRetryFunction"],

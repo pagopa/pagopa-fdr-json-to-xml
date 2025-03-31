@@ -1,7 +1,6 @@
 package it.gov.pagopa.fdr.conversion.model;
 
 public class ErrorTableColumns {
-    public static final String COLUMN_FIELD_ID = "uniqueId";
     public static final String COLUMN_FIELD_BLOB = "blob";
     public static final String COLUMN_FIELD_SESSION_ID = "blobSessionId";
     public static final String COLUMN_FIELD_CREATED = "created";
