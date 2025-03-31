@@ -75,7 +75,6 @@ microservice-chart: &microservice-chart
     FDR_FASE1_BASE_URL: "https://api.dev.platform.pagopa.it/fdr-legacy/service-internal/v1"
     BLOB_STORAGE_FDR3_CONTAINER: "fdr3-flows"
     ERROR_TABLE_NAME: "fdr3conversionerror"
-    # MAX_RETRY_COUNT: "5"
     ASPNETCORE_URLS: "http://*:8080"
     FUNCTIONS_SECRETS_PATH: "/tmp/secrets"
     AzureFunctionsWebHost__hostid: "fdr-json-to-xml"
@@ -109,7 +108,7 @@ microservice-chart: &microservice-chart
   canaryDelivery:
     create: false
 # ALL TRIGGER FUNCTION
-triggers:
+functions:
   !!merge <<: *microservice-chart
   ingress:
     !!merge <<: *ingress
@@ -118,6 +117,11 @@ triggers:
   envConfig:
     !!merge <<: *envConfig
     WEBSITE_SITE_NAME: "pagopafdrjsontoxml" # required to show cloud role name in application insights
+    AzureFunctionsWebHost__hostid: "fdr-json-to-xml-functions"
+    AzureFunctionsJobHost__functions__0: "Info"
+    AzureFunctionsJobHost__functions__1: "BlobEventProcessor"
+    AzureFunctionsJobHost__functions__2: "ErrorRetryFunction"
+    AzureFunctionsJobHost__functions__3: "ErrorRetryAllFunction"
 # BLOB TRIGGER FUNCTION todo
 #blobtrigger:
 #  !!merge <<: *microservice-chart

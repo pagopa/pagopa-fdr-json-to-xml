@@ -75,8 +75,7 @@ microservice-chart: &microservice-chart
     FDR_FASE1_BASE_URL: "https://api.uat.platform.pagopa.it/fdr-legacy/service-internal/v1"
     BLOB_STORAGE_FDR3_CONTAINER: "fdr3-flows"
     ERROR_TABLE_NAME: "fdr3conversionerror"
-    # MAX_RETRY_COUNT: "5"
-    # ASPNETCORE_URLS: "http://*:8080"
+    ASPNETCORE_URLS: "http://*:8080"
     FUNCTIONS_SECRETS_PATH: "/tmp/secrets"
     AzureFunctionsWebHost__hostid: "fdr-json-to-xml"
   envFieldRef:
@@ -108,50 +107,18 @@ microservice-chart: &microservice-chart
                   - "true"
   canaryDelivery:
     create: false
-# BLOB TRIGGER FUNCTION
-blobtrigger:
-  !!merge <<: *microservice-chart
-  ingress:
-    !!merge <<: *ingress
-    path: /pagopa-fdr-json-to-xml/blobtrigger-notuser/(.*)
-  autoscaling:
-    !!merge <<: *autoscaling
-  envConfig:
-    !!merge <<: *envConfig
-    WEBSITE_SITE_NAME: "pagopafdrjsontoxml-blobtrigger" # required to show cloud role name in application insights
-    AzureFunctionsWebHost__hostid: "fdr-json-to-xml-blob-trigger"
-    AzureFunctionsJobHost__functions__0: "BlobEventProcessor"
-# QUEUE TRIGGER FUNCTION todo
-#queuetrigger:
-#  !!merge <<: *microservice-chart
-#  ingress:
-#    !!merge <<: *ingress
-#    path: /pagopa-fdr-json-to-xml/queuetrigger-notuser/(.*)
-#  autoscaling:
-#    !!merge <<: *autoscaling
-#  envConfig:
-#    !!merge <<: *envConfig
-#    WEBSITE_SITE_NAME: "pagopafdrjsontoxml-queuetrigger" # required to show cloud role name in application insights
-#    AzureFunctionsWebHost__hostid: "fdr-json-to-xml-queue-trigger"
-#    AzureFunctionsJobHost__functions__0: "QueueEventProcessor"
-# HTTP TRIGGER FUNCTION
-httptrigger:
+# ALL TRIGGER FUNCTION
+functions:
   !!merge <<: *microservice-chart
   ingress:
     !!merge <<: *ingress
   autoscaling:
     !!merge <<: *autoscaling
-  resources:
-    !!merge <<: *resources
-    requests:
-      memory: "100Mi"
-      cpu: "0.1"
-    limits:
-      memory: "768Mi"
-      cpu: "0.40"
   envConfig:
     !!merge <<: *envConfig
-    WEBSITE_SITE_NAME: "pagopafdrjsontoxml-httptrigger" # required to show cloud role name in application insights
-    AzureFunctionsWebHost__hostid: "fdr-json-to-xml-http-trigger"
+    WEBSITE_SITE_NAME: "pagopafdrjsontoxml" # required to show cloud role name in application insights
+    AzureFunctionsWebHost__hostid: "fdr-json-to-xml-functions"
     AzureFunctionsJobHost__functions__0: "Info"
-    # AzureFunctionsJobHost__functions__1: "XmlErrorRetry" todo
+    AzureFunctionsJobHost__functions__1: "BlobEventProcessor"
+    AzureFunctionsJobHost__functions__2: "ErrorRetryFunction"
+    AzureFunctionsJobHost__functions__3: "ErrorRetryAllFunction"

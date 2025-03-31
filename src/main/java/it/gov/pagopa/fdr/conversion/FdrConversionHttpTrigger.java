@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 public class FdrConversionHttpTrigger {
     @FunctionName("ErrorRetryFunction")
     public HttpResponseMessage process (
-            @HttpTrigger(name = "ConversionFdrHttpTrigger",
+            @HttpTrigger(name = "ErrorRetryFunctionHttpTrigger",
                     methods = {HttpMethod.POST},
                     route = "errors/{blobName}/retry",
                     authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<Optional<String>> request,

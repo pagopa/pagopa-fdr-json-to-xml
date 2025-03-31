@@ -19,11 +19,11 @@ import java.util.logging.Logger;
 
 @Slf4j
 public class FdrRetryAllHttpTrigger {
-    private static final String fn = "FdR3-to-FdR1-RetryAll";
+    private static final String fn = "ErrorRetryAllFunction";
 
-    @FunctionName("ErrorRetryFunction")
+    @FunctionName("ErrorRetryAllFunction")
     public HttpResponseMessage process (
-            @HttpTrigger(name = "ConversionFdrHttpTrigger",
+            @HttpTrigger(name = "ErrorRetryAllFunctionHttpTrigger",
                     methods = {HttpMethod.POST},
                     route = "errors/retry",
                     authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<Optional<String>> request,
