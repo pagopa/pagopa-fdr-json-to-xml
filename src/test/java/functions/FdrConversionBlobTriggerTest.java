@@ -85,6 +85,15 @@ public class FdrConversionBlobTriggerTest {
         Assertions.assertEquals(expectedPayload, actualPayload);
     }
 
+    @Test
+    void alertAppExceptionTest() {
+        RuntimeException e = new RuntimeException();
+        Exception alertAppException = new AlertAppException("message", e.getCause(), "details");
+        String expected = """
+                it.gov.pagopa.fdr.conversion.exception.AlertAppException: message\nDetails:details""";
+        Assertions.assertEquals(expected, alertAppException.toString());
+    }
+
     public static void createMockClient(Integer status) {
         new MockServerClient("127.0.0.1", 8080)
                 .when(
