@@ -22,6 +22,7 @@ import static it.gov.pagopa.fdr.conversion.util.StorageAccountUtil.removeEntity;
 @Slf4j
 public class FdrRetryAllHttpTrigger {
     private static final String fn = "ErrorRetryAllFunction";
+    private static final String LOG_MESSAGE = "[fn=%s][id=%s] Retry table entity processed = %s, PartitionKey = %s, RowKey = %s, Properties = %s, blobName = %s";
 
     @FunctionName("ErrorRetryAllFunction")
     public HttpResponseMessage process (
@@ -47,10 +48,7 @@ public class FdrRetryAllHttpTrigger {
                     boolean processed = processor.process(blobData.getContent(), blobName, blobData.getMetadata(), context);
                     if(processed) removeEntity(blobData.getMetadata());
 
-                    logger.info(String.format(
-                            "[fn=%s][id=%s] Retry table entity processed = %s, PartitionKey = %s, RowKey = %s, Properties = %s, blobName = %s",
-                            fn, context.getInvocationId(), processed, e.getPartitionKey(), e.getRowKey(), properties, blobName
-                    ));
+                    logger.info(String.format(LOG_MESSAGE, fn, context.getInvocationId(), processed, e.getPartitionKey(), e.getRowKey(), properties, blobName));
                 }
             }
 

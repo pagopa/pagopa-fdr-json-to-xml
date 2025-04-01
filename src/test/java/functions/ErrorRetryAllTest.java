@@ -1,5 +1,9 @@
 package functions;
 
+import com.azure.core.http.rest.PagedIterable;
+import com.azure.core.http.rest.PagedResponse;
+import com.azure.core.util.IterableStream;
+import com.azure.data.tables.models.TableEntity;
 import com.microsoft.azure.functions.ExecutionContext;
 import com.microsoft.azure.functions.HttpRequestMessage;
 import com.microsoft.azure.functions.HttpResponseMessage;
@@ -13,9 +17,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -67,8 +72,17 @@ class ErrorRetryAllTest {
         // Mock static methods using mockStatic
         try (var mockedStorageUtil = mockStatic(StorageAccountUtil.class)) {
             // Mock the behavior of blob retrieval and processing
-            BlobData mockBlobData = mock(BlobData.class);
+            BlobData mockBlobData = mock(BlobData.class);            // Mock PagedIterable<TableEntity>
+            PagedIterable<TableEntity> mockPagedIterable = mock(PagedIterable.class);
+            PagedResponse<TableEntity> mockPage = mock(PagedResponse.class);
+            TableEntity mockedEntity = new TableEntity("partitionKey", "rowKey");
+            mockedEntity.addProperty("propertyName", "propertyValue");
+            Iterable<TableEntity> iterableFromStreamDirect = () -> Stream.of(mockedEntity).iterator();
+
+            when(mockPage.getElements()).thenReturn(IterableStream.of(iterableFromStreamDirect));
+            when(mockPagedIterable.iterableByPage()).thenReturn(Collections.singletonList(mockPage));
             mockedStorageUtil.when(() -> StorageAccountUtil.getBlobContent(anyString())).thenReturn(mockBlobData);
+            mockedStorageUtil.when(StorageAccountUtil::getTableEntities).thenReturn(mockPagedIterable);
 
             HttpResponseMessage response = function.process(mockRequest, mockContext);
             assertEquals(HttpStatus.OK, response.getStatus());
