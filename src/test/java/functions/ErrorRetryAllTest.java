@@ -111,7 +111,7 @@ class ErrorRetryAllTest {
         // Mock static methods using mockStatic
         try (var mockedStorageUtil = mockStatic(StorageAccountUtil.class)) {
             // Simulate an exception in the method
-            mockedStorageUtil.when(() -> StorageAccountUtil.getBlobContent(anyString())).thenThrow(new RuntimeException("Test Exception"));
+            mockedStorageUtil.when(StorageAccountUtil::getTableEntities).thenThrow(new RuntimeException("Test Exception"));
 
             HttpResponseMessage response = function.process(mockRequest, mockContext);
             assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatus());
