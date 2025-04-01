@@ -56,6 +56,10 @@ public class FdrRetryAllHttpTrigger {
             logger.severe(String.format("[Exception][id=%s] Error while FDR3 ErrorRetryFunction execution, class = %s, message = %s",
                     context.getInvocationId(), e.getClass(), e.getMessage()));
             return request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR).body(HttpStatus.INTERNAL_SERVER_ERROR.toString()).build();
+        } catch (AssertionError e) {
+            logger.severe(String.format("[AssertionError][id=%s] Error while FDR3 ErrorRetryFunction execution, class = %s, message = %s",
+                    context.getInvocationId(), e.getClass(), e.getMessage()));
+            return request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR).body(HttpStatus.INTERNAL_SERVER_ERROR.toString()).build();
         }
     }
 }

@@ -122,7 +122,7 @@ functions:
     AzureFunctionsJobHost__functions__1: "BlobEventProcessor"
     AzureFunctionsJobHost__functions__2: "ErrorRetryFunction"
     AzureFunctionsJobHost__functions__3: "ErrorRetryAllFunction"
-# BLOB TRIGGER FUNCTION todo
+# BLOB TRIGGER FUNCTION todo keep as a template in case a single pod per function is deployed in the future
 #blobtrigger:
 #  !!merge <<: *microservice-chart
 #  ingress:
@@ -135,20 +135,7 @@ functions:
 #    WEBSITE_SITE_NAME: "pagopafdrjsontoxml-blobtrigger" # required to show cloud role name in application insights
 #    AzureFunctionsWebHost__hostid: "fdr-json-to-xml-blob-trigger"
 #    AzureFunctionsJobHost__functions__0: "BlobEventProcessor"
-# QUEUE TRIGGER FUNCTION todo
-#queuetrigger:
-#  !!merge <<: *microservice-chart
-#  ingress:
-#    !!merge <<: *ingress
-#    path: /pagopa-fdr-json-to-xml/queuetrigger-notuser/(.*)
-#  autoscaling:
-#    !!merge <<: *autoscaling
-#  envConfig:
-#    !!merge <<: *envConfig
-#    WEBSITE_SITE_NAME: "pagopafdrjsontoxml-queuetrigger" # required to show cloud role name in application insights
-#    AzureFunctionsWebHost__hostid: "fdr-json-to-xml-queue-trigger"
-#    AzureFunctionsJobHost__functions__0: "QueueEventProcessor"
-# HTTP TRIGGER FUNCTION
+# HTTP TRIGGER FUNCTION todo keep as a template in case a single pod per function is deployed in the future
 #httptrigger:
 #  !!merge <<: *microservice-chart
 #  ingress:
@@ -168,4 +155,4 @@ functions:
 #    WEBSITE_SITE_NAME: "pagopafdrjsontoxml-httptrigger" # required to show cloud role name in application insights
 #    AzureFunctionsWebHost__hostid: "fdr-json-to-xml-http-trigger"
 #    AzureFunctionsJobHost__functions__0: "Info"
-#    # AzureFunctionsJobHost__functions__1: "FDR3ErrorRetry" todo
+#    # AzureFunctionsJobHost__functions__1: "ErrorRetryFunction"

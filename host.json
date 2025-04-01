@@ -16,10 +16,10 @@
   "logging": {
     "logLevel": {
       "default": "Error",
-      "Function.Info": "Information",
+      "Function.Info": "Error",
       "Function.BlobEventProcessor": "Information",
-      "Function.ErrorRetryFunction": "Information",
-      "Function.ErrorRetryAllFunction": "Information"
+      "Function.ErrorRetryFunction": "Error",
+      "Function.ErrorRetryAllFunction": "Error"
     },
     "applicationInsights": {
       "samplingSettings": {
