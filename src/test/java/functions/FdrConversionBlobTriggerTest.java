@@ -3,6 +3,7 @@ package functions;
 import com.microsoft.azure.functions.ExecutionContext;
 import feign.FeignException;
 import it.gov.pagopa.fdr.conversion.FdrConversionBlobTrigger;
+import it.gov.pagopa.fdr.conversion.exception.AlertAppException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -68,7 +69,7 @@ public class FdrConversionBlobTriggerTest {
         byte[] content = "todo".getBytes();
         createMockClient(500);
         fdrConversionFunction.FDR_FASE1_BASE_URL = TEST_URL;
-        Assertions.assertThrows(FeignException.class, () -> fdrConversionFunction.process(content, "blob-name-1",
+        Assertions.assertThrows(AlertAppException.class, () -> fdrConversionFunction.process(content, "blob-name-1",
                 Map.of("elaborate", "true"), context));
     }
 

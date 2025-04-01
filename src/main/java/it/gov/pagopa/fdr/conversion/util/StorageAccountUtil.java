@@ -101,6 +101,21 @@ public class StorageAccountUtil {
                 .build();
     }
 
+    public static boolean removeEntity(Map<String, String> metadata) {
+        String pk = metadata.get(SESSION_INSERTED_TIMESTAMP_METADATA_KEY);
+        String rk = metadata.get(SESSION_ID_METADATA_KEY).substring(0,10);
+        TableClient tableClient = getTableServiceClient().getTableClient(ERROR_TABLE_NAME);
+
+        try {
+            TableEntity entity = tableClient.getEntity(pk, rk);
+            if (entity == null) return false;
+            tableClient.deleteEntity(pk, rk);
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
+    }
+
     public static PagedIterable<TableEntity> getTableEntities() {
         try {
             return getTableServiceClient()

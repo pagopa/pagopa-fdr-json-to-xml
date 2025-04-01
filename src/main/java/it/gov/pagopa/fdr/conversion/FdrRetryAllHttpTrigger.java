@@ -16,6 +16,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
 
+import static it.gov.pagopa.fdr.conversion.util.StorageAccountUtil.removeEntity;
+
 
 @Slf4j
 public class FdrRetryAllHttpTrigger {
@@ -43,6 +45,7 @@ public class FdrRetryAllHttpTrigger {
                     FdrConversionBlobTrigger processor = new FdrConversionBlobTrigger();
                     assert blobData != null;
                     boolean processed = processor.process(blobData.getContent(), blobName, blobData.getMetadata(), context);
+                    if(processed) removeEntity(blobData.getMetadata());
 
                     logger.info(String.format(
                             "[fn=%s][id=%s] Retry table entity processed = %s, PartitionKey = %s, RowKey = %s, Properties = %s, blobName = %s",
