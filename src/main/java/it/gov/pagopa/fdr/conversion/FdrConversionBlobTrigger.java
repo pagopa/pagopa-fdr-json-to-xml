@@ -77,7 +77,7 @@ public class FdrConversionBlobTrigger {
             // Last retry check
             if (retryIndex >= MAX_RETRY_COUNT) {
                 sendToDeadLetter(context, blobName, blobMetadata, e.getMessage(), errorType, e.getMessage(), e);
-                String exceptionDetails = getExceptionDetails(blobName, blobMetadata.get(SESSION_ID_METADATA_KEY), retryIndex, e);
+                String exceptionDetails = getExceptionDetails(blobName, blobMetadata.get(SESSION_ID_METADATA_KEY), retryIndex);
                 throw new AlertAppException(e.getMessage(), e.getCause(), exceptionDetails);
             }
             throw e;
