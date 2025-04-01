@@ -1,0 +1,105 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "FdR - JSON to XML ${service}",
+    "version": "0.2.2-24-PAGOPA-2745-conversion-function",
+    "description": "FDR JSON to XML API REST"
+  },
+  "paths": {
+    "/info": {
+      "get": {
+        "tags": [
+          "Home"
+        ],
+        "summary": "Get API Info",
+        "operationId": "Info",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/errors/{blobName}/retry": {
+      "get": {
+        "tags": [
+          "Retry-APIs"
+        ],
+        "summary": "Retry XML to JSON Error Processing",
+        "operationId": "FDR3ErrorConversionRetry",
+        "parameters": [
+          {
+            "name": "blobName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Partition key to identify the entity"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success message",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/errors/retry": {
+      "get": {
+        "tags": [
+          "Retry-APIs"
+        ],
+        "summary": "Retry All XML to JSON Error Processing found in the fdr3conversionerror table.",
+        "operationId": "FDR3ErrorConversionRetryAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success message",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -15,7 +15,6 @@ target/
 *.jar
 *.war
 *.ear
-*.zip
 *.tar.gz
 *.rar
 
@@ -38,3 +37,7 @@ local.settings.json
 bin/
 obj/
 /.identity/.terraform/
+
+# Environment
+**.env
+**.terraform

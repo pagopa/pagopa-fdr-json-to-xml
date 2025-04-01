@@ -16,6 +16,18 @@ The function aims to convert FdR reports from JSON format to XML format.
 ### Test
 `curl http://localhost:8999/example`
 
+### Configuration
+
+`cp .env.example .env`
+
+Fill with the environment variables
+
+```
+set -o allexport                                                                 
+source .env     
+set +o allexport
+```
+
 ## Run locally with Maven
 
 In order to autogenerate the required classes, please run the command:  
@@ -24,6 +36,7 @@ In order to autogenerate the required classes, please run the command:
 In order to test the Azure Function in local environment, please run the command:
 `mvn azure-functions:run`
 
+`mvn -f pom.xml clean package && mvn -e azure-functions:run`
 
 ### Test
 `curl http://localhost:7071/example`
