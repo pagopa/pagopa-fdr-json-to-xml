@@ -6,6 +6,7 @@ import com.microsoft.azure.functions.annotation.*;
 import feign.Feign;
 import feign.FeignException;
 import it.gov.pagopa.fdr.conversion.client.FdR1Client;
+import it.gov.pagopa.fdr.conversion.exception.AlertAppException;
 import it.gov.pagopa.fdr.conversion.util.StorageAccountUtil;
 import it.gov.pagopa.fdr.conversion.model.ErrorEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +16,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static it.gov.pagopa.fdr.conversion.exception.AlertAppException.getExceptionDetails;
+
 @Slf4j
 public class FdrConversionBlobTrigger {
     private static final String fn = "FdR3-to-FdR1";
@@ -22,6 +25,7 @@ public class FdrConversionBlobTrigger {
     private static final String ELABORATE_KEY = "elaborate";
     public String FDR_FASE1_BASE_URL = System.getenv("FDR_FASE1_BASE_URL");
     private final String FDR_FASE1_API_KEY = System.getenv("FDR_FASE1_API_KEY");
+    private static final String SESSION_ID_METADATA_KEY = "sessionId";
 
     /**
      * The job of this function is to convert, i.e., store and save, the streams of FdR3 to FdR1.
@@ -65,16 +69,18 @@ public class FdrConversionBlobTrigger {
             FdR1Client fdR1Client = Feign.builder().target(FdR1Client.class, FDR_FASE1_BASE_URL);
             fdR1Client.postConversion(FDR_FASE1_API_KEY, getPayload(content));
             logger.info(String.format("[%s][id=%s] Successful conversion call to FdR1", fn, context.getInvocationId()));
-        } catch (FeignException e) {
-            logger.severe(String.format("[Exception][%s][id=%s] %s, response-status = %s, message = %s",
-                    fn, context.getInvocationId(), e.getClass(), e.status(), e.getMessage()));
-            deadLetter(context, blobName, blobMetadata, e.getMessage(), ErrorEnum.HTTP_ERROR, e.getMessage(), e);
+        }
+        catch (Exception e) {
+            logger.severe(String.format("[Exception][%s][id=%s] class = %s, message = %s", fn, iid, e.getClass(), e.getMessage()));
+            // Get error type
+            ErrorEnum errorType = (e instanceof FeignException) ? ErrorEnum.HTTP_ERROR : ErrorEnum.GENERIC_ERROR;
+            // Last retry check
+            if (retryIndex >= MAX_RETRY_COUNT) {
+                sendToDeadLetter(context, blobName, blobMetadata, e.getMessage(), errorType, e.getMessage(), e);
+                String exceptionDetails = getExceptionDetails(blobName, blobMetadata.get(SESSION_ID_METADATA_KEY), retryIndex, e);
+                throw new AlertAppException(e.getMessage(), e.getCause(), exceptionDetails);
+            }
             throw e;
-        } catch (Exception ex) {
-            logger.severe(String.format("[Exception][%s][id=%s] Generic Exception class = %s, message = %s",
-                    fn, context.getInvocationId(), ex.getClass(), ex.getMessage()));
-            deadLetter(context, blobName, blobMetadata, ex.getMessage(), ErrorEnum.GENERIC_ERROR, "generic-error", ex);
-            throw ex;
         }
         return true;
     }
@@ -89,14 +95,9 @@ public class FdrConversionBlobTrigger {
     }
 
     // Check retry index and save to dead-letter if max-retry has been reached
-    private static void deadLetter(ExecutionContext context, String blob, Map<String, String> metadata, String message, ErrorEnum errorEnum, String response, Exception e) {
-        // the retry count ranges from 0 to MAX_RETRY_COUNT
-        int retryIndex = context.getRetryContext() == null ? -1 : context.getRetryContext().getRetrycount();
-        Logger logger = context.getLogger();
-        if (retryIndex >= MAX_RETRY_COUNT) {
-            logger.log(Level.WARNING, () -> String.format("[ALERT][%s][LAST_RETRY][DEAD-LETTER] Performed last retry for event ingestion: InvocationId [%s]",
-                    fn, context.getInvocationId()));
-            StorageAccountUtil.sendToErrorTable(context, blob, metadata, message, errorEnum, response, e);
-        }
+    private static void sendToDeadLetter(ExecutionContext context, String blob, Map<String, String> metadata, String message, ErrorEnum errorEnum, String response, Exception e) {
+        context.getLogger().log(Level.WARNING, () -> String.format("[ALERT][%s][LAST_RETRY][DEAD-LETTER] Performed last retry for event ingestion: InvocationId [%s]",
+                fn, context.getInvocationId()));
+        StorageAccountUtil.sendToErrorTable(context, blob, metadata, message, errorEnum, response, e);
     }
 }
