@@ -22,7 +22,7 @@ public class AlertAppException extends RuntimeException {
 
     @Override
     public String toString() {
-        return super.toString() + "\nDetails:" + details;
+        return String.format("[%s]:details=%s, message=%s", this.getClass(), details, super.toString());
     }
 
     public static String getExceptionDetails(String blob, String sessionId, int retry) {
