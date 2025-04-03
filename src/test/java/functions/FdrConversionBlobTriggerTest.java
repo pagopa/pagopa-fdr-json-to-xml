@@ -90,7 +90,8 @@ public class FdrConversionBlobTriggerTest {
         RuntimeException e = new RuntimeException();
         Exception alertAppException = new AlertAppException("message", e.getCause(), "details");
         String expected = """
-                it.gov.pagopa.fdr.conversion.exception.AlertAppException: message\nDetails:details""";
+[ALERT][FdrJsonToXml][LAST_RETRY][class it.gov.pagopa.fdr.conversion.exception.AlertAppException]:details=details,
+message=it.gov.pagopa.fdr.conversion.exception.AlertAppException: message""";
         Assertions.assertEquals(expected, alertAppException.toString());
     }
 

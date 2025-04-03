@@ -22,7 +22,8 @@ public class AlertAppException extends RuntimeException {
 
     @Override
     public String toString() {
-        return super.toString() + "\nDetails:" + details;
+        String exceptionPrefix = "[ALERT][FdrJsonToXml][LAST_RETRY]";
+        return String.format("%s[%s]:details=%s,\nmessage=%s", exceptionPrefix, this.getClass(), details, super.toString());
     }
 
     public static String getExceptionDetails(String blob, String sessionId, int retry) {
