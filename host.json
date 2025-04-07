@@ -18,8 +18,8 @@
       "default": "Error",
       "Function.Info": "Error",
       "Function.BlobEventProcessor": "Information",
-      "Function.ErrorRetryFunction": "Error",
-      "Function.ErrorRetryAllFunction": "Error"
+      "Function.ErrorRetryFunction": "Information",
+      "Function.ErrorRetryAllFunction": "Information"
     },
     "applicationInsights": {
       "samplingSettings": {

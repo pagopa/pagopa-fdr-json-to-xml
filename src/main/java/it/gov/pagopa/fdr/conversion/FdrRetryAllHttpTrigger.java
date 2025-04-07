@@ -46,7 +46,7 @@ public class FdrRetryAllHttpTrigger {
                     FdrConversionBlobTrigger processor = new FdrConversionBlobTrigger();
                     assert blobData != null;
                     boolean processed = processor.process(blobData.getContent(), blobName, blobData.getMetadata(), context);
-                    if(processed) removeEntity(blobData.getMetadata());
+                    if(processed) removeEntity(context, blobData.getMetadata());
 
                     logger.info(String.format(LOG_MESSAGE, fn, context.getInvocationId(), processed, e.getPartitionKey(), e.getRowKey(), properties, blobName));
                 }
