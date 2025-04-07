@@ -31,7 +31,7 @@ public class FdrConversionHttpTrigger {
             FdrConversionBlobTrigger processor = new FdrConversionBlobTrigger();
             boolean processed = processor.process(blobData.getContent(), blobName, blobData.getMetadata(), context);
             if (processed) {
-                removeEntity(blobData.getMetadata());
+                removeEntity(context, blobData.getMetadata());
                 return request.createResponseBuilder(HttpStatus.OK).body(HttpStatus.OK.toString()).build();
             } else {
                 return request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR).body(HttpStatus.INTERNAL_SERVER_ERROR.toString()).build();

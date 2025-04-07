@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 public class StorageAccountUtil {
     private static final String TABLE_CONNECTION_STRING = System.getenv("TABLE_STORAGE_CONN_STRING");
@@ -101,16 +102,21 @@ public class StorageAccountUtil {
                 .build();
     }
 
-    public static boolean removeEntity(Map<String, String> metadata) {
-        String pk = metadata.get(SESSION_INSERTED_TIMESTAMP_METADATA_KEY);
-        String rk = metadata.get(SESSION_ID_METADATA_KEY).substring(0,10);
+    public static boolean removeEntity(ExecutionContext context, Map<String, String> metadata) {
+        Logger logger = context.getLogger();
+        String pk = metadata.get(SESSION_INSERTED_TIMESTAMP_METADATA_KEY).substring(0,10);
+        String rk = metadata.get(SESSION_ID_METADATA_KEY);
         TableClient tableClient = getTableServiceClient().getTableClient(ERROR_TABLE_NAME);
 
         try {
             TableEntity entity = tableClient.getEntity(pk, rk);
             if (entity == null) return false;
             tableClient.deleteEntity(pk, rk);
+            logger.info(String.format("[id=%s] Entity deletion from dead letter %s was successful. PartitionKey=%s, RowKey=%s",
+                    context.getInvocationId(), ERROR_TABLE_NAME, pk, rk));
         } catch (Exception e) {
+            logger.severe(String.format("[id=%s] Entity deletion from dead letter %s failed. PartitionKey=%s, RowKey=%s",
+                    context.getInvocationId(), ERROR_TABLE_NAME, pk, rk));
             return false;
         }
         return true;
