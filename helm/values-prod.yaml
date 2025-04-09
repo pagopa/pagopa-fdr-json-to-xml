@@ -2,7 +2,7 @@ microservice-chart: &microservice-chart
   namespace: "fdr"
   image:
     repository: ghcr.io/pagopa/pagopa-fdr-json-to-xml
-    tag: "0.2.5-1-add-info-version"
+    tag: "0.2.5-2-add-info-version"
     pullPolicy: Always
   livenessProbe:
     handlerType: tcpSocket
