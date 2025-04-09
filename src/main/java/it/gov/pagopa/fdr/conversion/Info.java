@@ -35,7 +35,7 @@ public class Info {
 				.body(
 						getInfo(
 								context.getLogger(),
-								"/META-INF/maven/it.gov.pagopa.fdr.conversion/pom.properties"))
+								"/META-INF/maven/it.gov.pagopa/fdrjsontoxml/pom.properties"))
 				.build();
 	}
 
@@ -44,7 +44,7 @@ public class Info {
 		String name = null;
 		try {
 			Properties properties = new Properties();
-			InputStream inputStream = loadResource(path);
+			InputStream inputStream = getClass().getResourceAsStream(path);
 			if (inputStream != null) {
 				properties.load(inputStream);
 				version = properties.getProperty("version", null);
@@ -54,9 +54,5 @@ public class Info {
 			logger.severe("Impossible to retrieve information from pom.properties file.");
 		}
 		return AppInfo.builder().version(version).environment("azure-fn").name(name).build();
-	}
-
-	public InputStream loadResource(String path) {
-		return getClass().getResourceAsStream(path);
 	}
 }
