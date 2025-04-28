@@ -5,14 +5,14 @@ version: 0.107.0
 appVersion: 0.2.6
 dependencies:
   - name: microservice-chart
-    version: 7.1.1
+    version: 7.5.0
     repository: "https://pagopa.github.io/aks-microservice-chart-blueprint"
     alias: functions
 #  - name: microservice-chart
-#    version: 7.1.1
+#    version: 7.5.0
 #    repository: "https://pagopa.github.io/aks-microservice-chart-blueprint"
 #    alias: blobtrigger todo keep as a template in case a single pod per function is deployed in the future
 #  - name: microservice-chart
-#    version: 7.1.1
+#    version: 7.5.0
 #    repository: "https://pagopa.github.io/aks-microservice-chart-blueprint"
 #    alias: httptrigger todo keep as a template in case a single pod per function is deployed in the future
