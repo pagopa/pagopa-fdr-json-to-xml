@@ -21,9 +21,9 @@
     "logLevel": {
       "default": "Error",
       "Function.Info": "Error",
-      "Function.BlobEventProcessor": "Error",
-      "Function.ErrorRetryFunction": "Error",
-      "Function.ErrorRetryAllFunction": "Error"
+      "Function.BlobEventProcessor": "Information",
+      "Function.ErrorRetryFunction": "Information",
+      "Function.ErrorRetryAllFunction": "Information"
     },
     "applicationInsights": {
       "samplingSettings": {
