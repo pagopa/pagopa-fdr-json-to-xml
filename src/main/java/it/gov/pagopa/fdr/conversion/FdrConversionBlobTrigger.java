@@ -25,6 +25,16 @@ public class FdrConversionBlobTrigger {
   public final String fdrFase1BaseUrl = System.getenv("FDR_FASE1_BASE_URL");
   private final String fdrFase1ApiKey = System.getenv("FDR_FASE1_API_KEY");
 
+  private final FdR1Client fdR1Client;
+
+  FdrConversionBlobTrigger(FdR1Client fdR1Client) {
+    this.fdR1Client = fdR1Client;
+  }
+
+  public FdrConversionBlobTrigger() {
+    this.fdR1Client = Feign.builder().target(FdR1Client.class, fdrFase1BaseUrl);
+  }
+
   /**
    * The job of this function is to convert, i.e., store and save, the streams of FdR3 to FdR1. This
    * is done by calling the API provided by FdR1
@@ -79,7 +89,6 @@ public class FdrConversionBlobTrigger {
     // Retry is configured at function level, we always make the exception throw to trigger that
     // retry
     try {
-      FdR1Client fdR1Client = Feign.builder().target(FdR1Client.class, fdrFase1BaseUrl);
       fdR1Client.postConversion(fdrFase1ApiKey, getPayload(content));
       log.info(
           "[{}][id={}] Successful conversion call to FdR1", FN_NAME, context.getInvocationId());
