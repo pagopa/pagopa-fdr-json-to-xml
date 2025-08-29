@@ -5,6 +5,7 @@ import com.microsoft.azure.functions.annotation.AuthorizationLevel;
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.HttpTrigger;
 import it.gov.pagopa.fdr.conversion.model.AppInfo;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.InputStream;
 import java.util.Optional;
@@ -15,12 +16,12 @@ import java.util.logging.Logger;
 /**
  * Azure Functions with Azure Http trigger.
  */
+@Slf4j
 public class Info {
 
-	/**
-	 * This function will be invoked when a Http Trigger occurs
-	 * @return
-	 */
+	private static final String ENVIRONMENT =
+			System.getenv().getOrDefault("APP_ENVIRONMENT", "azure-fn");
+
 	@FunctionName("Info")
 	public HttpResponseMessage run (
 			@HttpTrigger(name = "InfoTrigger",
@@ -32,27 +33,24 @@ public class Info {
 		return request
 				.createResponseBuilder(HttpStatus.OK)
 				.header("Content-Type", "application/json")
-				.body(
-						getInfo(
-								context.getLogger(),
-								"/META-INF/maven/it.gov.pagopa/fdrjsontoxml/pom.properties"))
+				.body(getInfo())
 				.build();
 	}
 
-	public synchronized AppInfo getInfo(Logger logger, String path) {
+	public synchronized AppInfo getInfo() {
 		String version = null;
 		String name = null;
-		try {
+		try (InputStream inputStream =
+					 this.getClass().getClassLoader().getResourceAsStream("application.properties")) {
 			Properties properties = new Properties();
-			InputStream inputStream = getClass().getResourceAsStream(path);
 			if (inputStream != null) {
 				properties.load(inputStream);
 				version = properties.getProperty("version", null);
-				name = properties.getProperty("artifactId", null);
+				name = properties.getProperty("name", null);
 			}
 		} catch (Exception e) {
-			logger.severe("Impossible to retrieve information from pom.properties file.");
+			log.error("Impossible to retrieve information from pom.properties file.", e);
 		}
-		return AppInfo.builder().version(version).environment("azure-fn").name(name).build();
+		return AppInfo.builder().version(version).environment(ENVIRONMENT).name(name).build();
 	}
 }

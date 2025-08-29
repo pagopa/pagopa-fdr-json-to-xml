@@ -21,8 +21,7 @@ import static it.gov.pagopa.fdr.conversion.util.StorageAccountUtil.removeEntity;
 
 @Slf4j
 public class FdrRetryAllHttpTrigger {
-    private static final String fn = "ErrorRetryAllFunction";
-    private static final String LOG_MESSAGE = "[fn=%s][id=%s] Retry table entity processed = %s, PartitionKey = %s, RowKey = %s, Properties = %s, blobName = %s";
+    private static final String FN_NAME = "ErrorRetryAllFunction";
 
     @FunctionName("ErrorRetryAllFunction")
     public HttpResponseMessage process (
@@ -31,7 +30,6 @@ public class FdrRetryAllHttpTrigger {
                     route = "errors/retry",
                     authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<Optional<String>> request,
             final ExecutionContext context) {
-        Logger logger = context.getLogger() == null ? Logger.getLogger("ErrorRetryFunction") : context.getLogger();
         try {
             PagedIterable<TableEntity> entities = StorageAccountUtil.getTableEntities();
             assert entities != null;
@@ -48,18 +46,19 @@ public class FdrRetryAllHttpTrigger {
                     boolean processed = processor.process(blobData.getContent(), blobName, blobData.getMetadata(), context);
                     if(processed) removeEntity(context, blobData.getMetadata());
 
-                    logger.info(String.format(LOG_MESSAGE, fn, context.getInvocationId(), processed, e.getPartitionKey(), e.getRowKey(), properties, blobName));
+                    log.info("[fn={}][id={}] Retry table entity processed = {}, PartitionKey = {}, RowKey = {}, Properties = {}, blobName = {}",
+                            FN_NAME, context.getInvocationId(), processed, e.getPartitionKey(), e.getRowKey(), properties, blobName);
                 }
             }
 
             return request.createResponseBuilder(HttpStatus.OK).body(HttpStatus.OK.toString()).build();
         } catch (Exception e) {
-            logger.severe(String.format("[Exception][id=%s] Error while FDR3 ErrorRetryFunction execution, class = %s, message = %s",
-                    context.getInvocationId(), e.getClass(), e.getMessage()));
+            log.error("[Exception][id={}] Error while FDR3 ErrorRetryFunction execution, class = {}, message = {}",
+                    context.getInvocationId(), e.getClass(), e.getMessage());
             return request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR).body(HttpStatus.INTERNAL_SERVER_ERROR.toString()).build();
         } catch (AssertionError e) {
-            logger.severe(String.format("[AssertionError][id=%s] Error while FDR3 ErrorRetryFunction execution, class = %s, message = %s",
-                    context.getInvocationId(), e.getClass(), e.getMessage()));
+            log.error("[AssertionError][id={}] Error while FDR3 ErrorRetryFunction execution, class = {}, message = {}",
+                    context.getInvocationId(), e.getClass(), e.getMessage());
             return request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR).body(HttpStatus.INTERNAL_SERVER_ERROR.toString()).build();
         }
     }
