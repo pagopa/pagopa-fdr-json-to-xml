@@ -7,6 +7,7 @@ import com.microsoft.azure.functions.ExecutionContext;
 import com.microsoft.azure.functions.annotation.*;
 import feign.Feign;
 import feign.FeignException;
+import it.gov.pagopa.fdr.conversion.client.AppInsightTelemetryClient;
 import it.gov.pagopa.fdr.conversion.client.FdR1Client;
 import it.gov.pagopa.fdr.conversion.exception.AlertAppException;
 import it.gov.pagopa.fdr.conversion.model.ErrorEnum;
@@ -26,12 +27,15 @@ public class FdrConversionBlobTrigger {
   private final String fdrFase1ApiKey = System.getenv("FDR_FASE1_API_KEY");
 
   private final FdR1Client fdR1Client;
+  private final AppInsightTelemetryClient aiTelemetryClient;
 
-  FdrConversionBlobTrigger(FdR1Client fdR1Client) {
+  FdrConversionBlobTrigger(FdR1Client fdR1Client, AppInsightTelemetryClient aiTelemetryClient) {
     this.fdR1Client = fdR1Client;
+    this.aiTelemetryClient = aiTelemetryClient;
   }
 
   public FdrConversionBlobTrigger() {
+    this.aiTelemetryClient = new AppInsightTelemetryClient();
     this.fdR1Client = Feign.builder().target(FdR1Client.class, fdrFase1BaseUrl);
   }
 
@@ -108,6 +112,8 @@ public class FdrConversionBlobTrigger {
             context, blobName, blobMetadata, e.getMessage(), errorType, e.getMessage(), e);
         String exceptionDetails =
             getExceptionDetails(blobName, blobMetadata.get(SESSION_ID_METADATA_KEY), retryIndex);
+
+        this.aiTelemetryClient.createCustomEventForAlert(exceptionDetails, e);
         throw new AlertAppException(e.getMessage(), e.getCause(), exceptionDetails);
       }
       throw e;

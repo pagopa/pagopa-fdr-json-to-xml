@@ -1,6 +1,13 @@
 package it.gov.pagopa.fdr.conversion;
 
 import static it.gov.pagopa.fdr.conversion.util.Utils.createContext;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.matchers.Times.exactly;
 import static org.mockserver.model.HttpRequest.request;
@@ -8,6 +15,7 @@ import static org.mockserver.model.HttpRequest.request;
 import com.microsoft.azure.functions.ExecutionContext;
 import feign.Feign;
 import feign.FeignException;
+import it.gov.pagopa.fdr.conversion.client.AppInsightTelemetryClient;
 import it.gov.pagopa.fdr.conversion.client.FdR1Client;
 import it.gov.pagopa.fdr.conversion.exception.AlertAppException;
 import java.io.FileInputStream;
@@ -21,6 +29,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockserver.client.MockServerClient;
 import org.mockserver.model.HttpResponse;
@@ -30,9 +39,10 @@ import shaded_package.org.apache.commons.io.IOUtils;
 public class FdrConversionBlobTriggerTest {
 
   private static final String TEST_URL = "http://localhost:8080";
+  private static final Map<String, String> METADATA = Map.of("elaborate", "true");
   private ExecutionContext context;
 
-  private FdR1Client fdR1Client;
+  private AppInsightTelemetryClient aiTelemetryClientMock;
   private FdrConversionBlobTrigger sut;
 
   @BeforeAll
@@ -42,7 +52,10 @@ public class FdrConversionBlobTriggerTest {
 
   @BeforeEach
   void beforeEach() {
-    sut = new FdrConversionBlobTrigger(Feign.builder().target(FdR1Client.class, TEST_URL));
+    aiTelemetryClientMock = Mockito.mock(AppInsightTelemetryClient.class);
+    sut =
+        new FdrConversionBlobTrigger(
+            Feign.builder().target(FdR1Client.class, TEST_URL), aiTelemetryClientMock);
     context = createContext(1);
   }
 
@@ -50,18 +63,24 @@ public class FdrConversionBlobTriggerTest {
   void processOk() {
     byte[] content = "test".getBytes();
     createMockClient(200);
+
     boolean processResult =
-        sut.process(content, "blob-name-1", Map.of("elaborate", "true"), context);
-    Assertions.assertTrue(processResult);
+        assertDoesNotThrow(() -> sut.process(content, "blob-name-1", METADATA, context));
+
+    assertTrue(processResult);
+
+    verify(aiTelemetryClientMock, never()).createCustomEventForAlert(anyString(), any());
   }
 
   @Test
   void processFail() {
     byte[] content = "test".getBytes();
     createMockClient(500);
-    Assertions.assertThrows(
-        FeignException.class,
-        () -> sut.process(content, "blob-name-1", Map.of("elaborate", "true"), context));
+
+    assertThrows(
+        FeignException.class, () -> sut.process(content, "blob-name-1", METADATA, context));
+
+    verify(aiTelemetryClientMock, never()).createCustomEventForAlert(anyString(), any());
   }
 
   @Test
@@ -69,9 +88,11 @@ public class FdrConversionBlobTriggerTest {
     context = createContext(9);
     byte[] content = "todo".getBytes();
     createMockClient(500);
-    Assertions.assertThrows(
-        AlertAppException.class,
-        () -> sut.process(content, "blob-name-1", Map.of("elaborate", "true"), context));
+
+    assertThrows(
+        AlertAppException.class, () -> sut.process(content, "blob-name-1", METADATA, context));
+
+    verify(aiTelemetryClientMock).createCustomEventForAlert(anyString(), any());
   }
 
   @Test
