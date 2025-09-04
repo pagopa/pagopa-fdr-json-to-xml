@@ -12,6 +12,16 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class FdrConversionHttpTrigger {
 
+  private final FdrConversionBlobTrigger processor;
+
+  public FdrConversionHttpTrigger(FdrConversionBlobTrigger processor) {
+    this.processor = processor;
+  }
+
+  public FdrConversionHttpTrigger() {
+    this.processor = new FdrConversionBlobTrigger();
+  }
+
   @FunctionName("ErrorRetryFunction")
   public HttpResponseMessage process(
       @HttpTrigger(
@@ -32,9 +42,9 @@ public class FdrConversionHttpTrigger {
             .body(HttpStatus.NOT_FOUND.toString())
             .build();
       }
-      FdrConversionBlobTrigger processor = new FdrConversionBlobTrigger();
+
       boolean processed =
-          processor.process(blobData.getContent(), blobName, blobData.getMetadata(), context);
+          this.processor.process(blobData.getContent(), blobName, blobData.getMetadata(), context);
       if (processed) {
         removeEntity(context, blobData.getMetadata());
         return request.createResponseBuilder(HttpStatus.OK).body(HttpStatus.OK.toString()).build();
