@@ -18,7 +18,16 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class FdrRetryAllHttpTrigger {
-  private static final String FN_NAME = "ErrorRetryAllFunction";
+
+  private final FdrConversionBlobTrigger processor;
+
+  public FdrRetryAllHttpTrigger(FdrConversionBlobTrigger processor) {
+    this.processor = processor;
+  }
+
+  public FdrRetryAllHttpTrigger() {
+    this.processor = new FdrConversionBlobTrigger();
+  }
 
   @FunctionName("ErrorRetryAllFunction")
   public HttpResponseMessage process(
@@ -40,15 +49,15 @@ public class FdrRetryAllHttpTrigger {
           Map<String, Object> properties = e.getProperties();
           String blobName = (String) properties.get(ErrorTableColumns.COLUMN_FIELD_BLOB);
           BlobData blobData = StorageAccountUtil.getBlobContent(blobName);
-          FdrConversionBlobTrigger processor = new FdrConversionBlobTrigger();
+
           assert blobData != null;
           boolean processed =
-              processor.process(blobData.getContent(), blobName, blobData.getMetadata(), context);
+              this.processor.process(
+                  blobData.getContent(), blobName, blobData.getMetadata(), context);
           if (processed) removeEntity(context, blobData.getMetadata());
 
           log.info(
-              "[fn={}][id={}] Retry table entity processed = {}, PartitionKey = {}, RowKey = {}, Properties = {}, blobName = {}",
-              FN_NAME,
+              "[fn=ErrorRetryAllFunction][id={}] Retry table entity processed = {}, PartitionKey = {}, RowKey = {}, Properties = {}, blobName = {}",
               context.getInvocationId(),
               processed,
               e.getPartitionKey(),

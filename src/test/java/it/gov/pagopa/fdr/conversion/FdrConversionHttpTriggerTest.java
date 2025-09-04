@@ -30,6 +30,7 @@ import org.mockito.stubbing.Answer;
 class FdrConversionHttpTriggerTest {
 
   private static final String TEST_BLOB = "test-blob";
+
   @Mock private ExecutionContext mockContext;
   @Mock private FdrConversionBlobTrigger fdrConversionBlobTrigger;
   @Mock private HttpRequestMessage<Optional<String>> mockRequest;
