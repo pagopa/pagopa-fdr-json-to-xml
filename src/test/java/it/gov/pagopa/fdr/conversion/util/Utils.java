@@ -1,4 +1,4 @@
-package util;
+package it.gov.pagopa.fdr.conversion.util;
 
 import com.microsoft.azure.functions.ExecutionContext;
 import com.microsoft.azure.functions.RetryContext;
