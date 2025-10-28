@@ -71,7 +71,6 @@ public class FdrConversionBlobTrigger {
    *     in total 5 retries and 1 write attempts on dead-letter that will overwrite the same record
    *     in the table. Specifically these will be the retry index values = 0, 1, 2, 3, 4
    */
-  // improvements for memory optimization
   @FunctionName("BlobEventProcessor")
   @ExponentialBackoffRetry(
           maxRetryCount = 4,
@@ -154,86 +153,6 @@ public class FdrConversionBlobTrigger {
       throw e;
     }
     return true;
-  }
-
-//  ORIGINALE
-//  @FunctionName("BlobEventProcessor")
-//  @ExponentialBackoffRetry(
-//      maxRetryCount = 4,
-//      maximumInterval = "00:05:00",
-//      minimumInterval = "00:00:10")
-//  public boolean process(
-//      @BlobTrigger(
-//              name = "Fdr3BlobTrigger",
-//              dataType = "binary",
-//              path = "%BLOB_STORAGE_FDR3_CONTAINER%/{blobName}",
-//              connection = "FDR_SA_CONNECTION_STRING")
-//          byte[] content,
-//      @BindingName("blobName") String blobName,
-//      @BindingName("Metadata") Map<String, String> blobMetadata,
-//      final ExecutionContext context) {
-//
-//    int retryIndex =
-//        context.getRetryContext() == null ? -1 : context.getRetryContext().getRetrycount();
-//    String iid = context.getInvocationId();
-//
-//    log.info(
-//        "[{}] Triggered, id = {}, blob-name = {}, blob-metadata = {}, retry = {}",
-//        FN_NAME,
-//        iid,
-//        blobName,
-//        blobMetadata,
-//        retryIndex);
-//
-//    // Ignore the blob if it does not contain the elaborate key or if it isn't true
-//    if (!Boolean.parseBoolean(blobMetadata.getOrDefault(ELABORATE_KEY, "false"))) {
-//      log.info(
-//          "[{}] Skipped, id = {}, blob-name = {}, blob-metadata = {}, retry = {}",
-//          FN_NAME,
-//          iid,
-//          blobName,
-//          blobMetadata,
-//          retryIndex);
-//      return false;
-//    }
-//
-//    // Retry is configured at function level, we always make the exception throw to trigger that retry
-//    try {
-//      fdR1Client.postConversion(fdrFase1ApiKey, getPayload(content));
-//      log.info(
-//          "[{}][id={}] Successful conversion call to FdR1", FN_NAME, context.getInvocationId());
-//    } catch (Exception e) {
-//      log.error(
-//          "[Exception][{}][id={}] class = {}, message = {}",
-//          FN_NAME,
-//          iid,
-//          e.getClass(),
-//          e.getMessage());
-//      // Get error type
-//      ErrorEnum errorType =
-//          (e instanceof FeignException) ? ErrorEnum.HTTP_ERROR : ErrorEnum.GENERIC_ERROR;
-//      // Last retry check
-//      if (retryIndex >= MAX_RETRY_COUNT) {
-//        sendToDeadLetter(
-//            context, blobName, blobMetadata, e.getMessage(), errorType, e.getMessage(), e);
-//        String exceptionDetails =
-//            getExceptionDetails(blobName, blobMetadata.get(SESSION_ID_METADATA_KEY), retryIndex);
-//
-//        this.aiTelemetryClient.createCustomEventForAlert(exceptionDetails, e);
-//        throw new AlertAppException(e.getMessage(), e.getCause(), exceptionDetails);
-//      }
-//      throw e;
-//    }
-//    return true;
-//  }
-
-  // Create JSON object with the base64 encoded payload
-  public static String getPayload(byte[] content) {
-    String base64Content = Base64.getEncoder().encodeToString(content);
-    JsonObject jsonBody = new JsonObject();
-    jsonBody.addProperty("payload", base64Content);
-    jsonBody.addProperty("encoding", "base64");
-    return jsonBody.toString();
   }
 
   public static String getPayload(InputStream contentStream) throws IOException {
