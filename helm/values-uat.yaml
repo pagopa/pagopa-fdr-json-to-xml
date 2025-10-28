@@ -2,7 +2,7 @@ microservice-chart: &microservice-chart
   namespace: "fdr"
   image:
     repository: ghcr.io/pagopa/pagopa-fdr-json-to-xml
-    tag: "0.2.9-1-optimization"
+    tag: "0.2.9-2-optimization"
     pullPolicy: Always
   livenessProbe:
     handlerType: tcpSocket
