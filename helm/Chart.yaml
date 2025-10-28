@@ -5,7 +5,7 @@ version: 0.113.0
 appVersion: 0.2.9-1-optimization
 dependencies:
   - name: microservice-chart
-    version: 7.5.0
+    version: 8.0.2
     repository: "https://pagopa.github.io/aks-microservice-chart-blueprint"
     alias: functions
 #  - name: microservice-chart
