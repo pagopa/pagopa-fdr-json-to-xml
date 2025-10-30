@@ -29,9 +29,11 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockserver.client.MockServerClient;
 import org.mockserver.model.HttpResponse;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
-
-@ExtendWith(MockitoExtension.class)
+@ExtendWith({MockitoExtension.class, SystemStubsExtension.class})
 public class FdrConversionBlobTriggerTest {
 
   private static final String TEST_URL = "http://localhost:8080";
@@ -41,6 +43,9 @@ public class FdrConversionBlobTriggerTest {
   private AppInsightTelemetryClient aiTelemetryClientMock;
   private FdrConversionBlobTrigger sut;
 
+  @SystemStub
+  private EnvironmentVariables environmentVariables;
+
   @BeforeAll
   static void beforeAll() {
     startClientAndServer(8080);
@@ -48,14 +53,13 @@ public class FdrConversionBlobTriggerTest {
 
   @BeforeEach
   void beforeEach() {
+    environmentVariables.set("APPLICATIONINSIGHTS_CONNECTION_STRING", "InstrumentationKey=00000000-0000-0000-0000-000000000000");
+    environmentVariables.set("FDR_FASE1_BASE_URL", TEST_URL);
     aiTelemetryClientMock = Mockito.mock(AppInsightTelemetryClient.class);
-    sut =
-        new FdrConversionBlobTrigger(
-                Feign.builder().target(FdR1Client.class, TEST_URL),
-                aiTelemetryClientMock);
+
+    FdrConversionBlobTrigger.setClientsForTest(Feign.builder().target(FdR1Client.class, TEST_URL), aiTelemetryClientMock);
+    sut = new FdrConversionBlobTrigger();
     context = createContext(1);
-
-
   }
 
   @Test
@@ -86,8 +90,7 @@ public class FdrConversionBlobTriggerTest {
     byte[] content = "todo".getBytes();
     createMockClient(500);
 
-    assertThrows(
-        AlertAppException.class, () -> sut.process(content, "blob-name-1", METADATA, context));
+    assertThrows(FeignException.class, () -> sut.process(content, "blob-name-1", METADATA, context));
 
     verify(aiTelemetryClientMock).createCustomEventForAlert(anyString(), any());
   }

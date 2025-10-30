@@ -2,31 +2,18 @@ package it.gov.pagopa.fdr.conversion;
 
 import static it.gov.pagopa.fdr.conversion.exception.AlertAppException.getExceptionDetails;
 
-import com.azure.storage.blob.BlobClient;
-import com.azure.storage.blob.BlobContainerClient;
-import com.azure.storage.blob.BlobServiceClient;
-import com.azure.storage.blob.BlobServiceClientBuilder;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.JsonObject;
 import com.microsoft.azure.functions.ExecutionContext;
 import com.microsoft.azure.functions.annotation.*;
 import feign.Feign;
 import feign.FeignException;
 import it.gov.pagopa.fdr.conversion.client.AppInsightTelemetryClient;
 import it.gov.pagopa.fdr.conversion.client.FdR1Client;
-import it.gov.pagopa.fdr.conversion.exception.AlertAppException;
 import it.gov.pagopa.fdr.conversion.model.ErrorEnum;
 import it.gov.pagopa.fdr.conversion.util.StorageAccountUtil;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.Map;
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -36,22 +23,27 @@ public class FdrConversionBlobTrigger {
   private static final String ELABORATE_KEY = "elaborate";
   private static final String SESSION_ID_METADATA_KEY = "sessionId";
 
-  public final String fdrSaConnectionString = System.getenv("FDR_SA_CONNECTION_STRING");
-  public final String fdrFase1BaseUrl = System.getenv("FDR_FASE1_BASE_URL");
   private final String fdrFase1ApiKey = System.getenv("FDR_FASE1_API_KEY");
 
-  private final FdR1Client fdR1Client;
-  private final AppInsightTelemetryClient aiTelemetryClient;
+  private static FdR1Client fdR1Client;
+  private static AppInsightTelemetryClient aiTelemetryClient;
 
-  FdrConversionBlobTrigger(FdR1Client fdR1Client, AppInsightTelemetryClient aiTelemetryClient) {
-    this.fdR1Client = fdR1Client;
-    this.aiTelemetryClient = aiTelemetryClient;
+  static {
+    if (aiTelemetryClient == null) {
+      aiTelemetryClient = new AppInsightTelemetryClient();
+    }
+    if (fdR1Client == null) {
+      fdR1Client = Feign.builder().target(FdR1Client.class, System.getenv("FDR_FASE1_BASE_URL"));
+    }
   }
 
-  public FdrConversionBlobTrigger() {
-    this.aiTelemetryClient = new AppInsightTelemetryClient();
-    this.fdR1Client = Feign.builder().target(FdR1Client.class, fdrFase1BaseUrl);
+  static void setClientsForTest(FdR1Client testFdR1Client, AppInsightTelemetryClient testAiTelemetryClient) {
+    fdR1Client = testFdR1Client;
+    aiTelemetryClient = testAiTelemetryClient;
   }
+
+  public FdrConversionBlobTrigger() {}
+
 
   /**
    * The job of this function is to convert, i.e., store and save, the streams of FdR3 to FdR1. This
@@ -115,7 +107,7 @@ public class FdrConversionBlobTrigger {
                 context.getInvocationId()
         );
 
-    } catch (Exception e) {
+    } catch (Exception | Error e) {
       log.error(
               "[Exception][{}][id={}] class = {}, message = {}",
               FN_NAME,
@@ -127,13 +119,11 @@ public class FdrConversionBlobTrigger {
               (e instanceof FeignException) ? ErrorEnum.HTTP_ERROR : ErrorEnum.GENERIC_ERROR;
       // Last retry check
       if (retryIndex >= MAX_RETRY_COUNT) {
-        sendToDeadLetter(
-                context, blobName, blobMetadata, e.getMessage(), errorType, e.getMessage(), e);
+        sendToDeadLetter(context, blobName, blobMetadata, e.getMessage(), errorType, e.getMessage(), e);
         String exceptionDetails =
                 getExceptionDetails(blobName, blobMetadata.get(SESSION_ID_METADATA_KEY), retryIndex);
 
-        this.aiTelemetryClient.createCustomEventForAlert(exceptionDetails, e);
-        throw new AlertAppException(e.getMessage(), e.getCause(), exceptionDetails);
+        aiTelemetryClient.createCustomEventForAlert(exceptionDetails, e);
       }
       throw e;
     }
@@ -148,11 +138,11 @@ public class FdrConversionBlobTrigger {
       String message,
       ErrorEnum errorEnum,
       String response,
-      Exception e) {
+      Object error) {
     log.warn(
         "[ALERT][{}][LAST_RETRY][DEAD-LETTER] Performed last retry for event ingestion: InvocationId [{}]",
         FN_NAME,
         context.getInvocationId());
-    StorageAccountUtil.sendToErrorTable(context, blob, metadata, message, errorEnum, response, e);
+    StorageAccountUtil.sendToErrorTable(context, blob, metadata, message, errorEnum, response, error);
   }
 }
