@@ -5,7 +5,7 @@
 
     <groupId>it.gov.pagopa</groupId>
     <artifactId>fdrjsontoxml</artifactId>
-    <version>0.2.9-3-optimization</version>
+    <version>0.2.9-4-optimization</version>
     <packaging>jar</packaging>
 
     <name>FdR-JSON-to-XML-Function</name>
