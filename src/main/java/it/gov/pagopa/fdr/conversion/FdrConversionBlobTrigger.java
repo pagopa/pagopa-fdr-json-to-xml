@@ -6,6 +6,7 @@ import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
 import com.microsoft.azure.functions.ExecutionContext;
 import com.microsoft.azure.functions.annotation.*;
@@ -39,12 +40,10 @@ public class FdrConversionBlobTrigger {
   public final String fdrFase1BaseUrl = System.getenv("FDR_FASE1_BASE_URL");
   private final String fdrFase1ApiKey = System.getenv("FDR_FASE1_API_KEY");
 
-  @Getter private final BlobServiceClient blobServiceClient;
   private final FdR1Client fdR1Client;
   private final AppInsightTelemetryClient aiTelemetryClient;
 
-  FdrConversionBlobTrigger(BlobServiceClient blobServiceClient, FdR1Client fdR1Client, AppInsightTelemetryClient aiTelemetryClient) {
-    this.blobServiceClient = blobServiceClient;
+  FdrConversionBlobTrigger(FdR1Client fdR1Client, AppInsightTelemetryClient aiTelemetryClient) {
     this.fdR1Client = fdR1Client;
     this.aiTelemetryClient = aiTelemetryClient;
   }
@@ -52,17 +51,13 @@ public class FdrConversionBlobTrigger {
   public FdrConversionBlobTrigger() {
     this.aiTelemetryClient = new AppInsightTelemetryClient();
     this.fdR1Client = Feign.builder().target(FdR1Client.class, fdrFase1BaseUrl);
-
-    this.blobServiceClient = new BlobServiceClientBuilder()
-            .connectionString(this.fdrSaConnectionString)
-            .buildClient();
   }
 
   /**
    * The job of this function is to convert, i.e., store and save, the streams of FdR3 to FdR1. This
    * is done by calling the API provided by FdR1
    *
-   * @param dontUse FDR3 flow from blob storage
+   * @param content FDR3 flow from blob storage
    * @param blobName FDR3 flow blob name
    * @param blobMetadata FDR3 flow blob metadata
    * @param context
@@ -82,12 +77,10 @@ public class FdrConversionBlobTrigger {
                   dataType = "binary",
                   path = "%BLOB_STORAGE_FDR3_CONTAINER%/{blobName}",
                   connection = "FDR_SA_CONNECTION_STRING")
-          byte[] dontUse,
+          byte[] content,
           @BindingName("blobName") String blobName,
           @BindingName("Metadata") Map<String, String> blobMetadata,
           final ExecutionContext context) throws IOException {
-
-    dontUse = null; // help GC
 
     int retryIndex =
             context.getRetryContext() == null ? -1 : context.getRetryContext().getRetrycount();
@@ -115,20 +108,12 @@ public class FdrConversionBlobTrigger {
 
     // Retry is configured at function level, we always make the exception throw to trigger that retry
     try {
-
-      String containerName = System.getenv("BLOB_STORAGE_FDR3_CONTAINER");
-      BlobContainerClient containerClient = blobServiceClient.getBlobContainerClient(containerName);
-      BlobClient blobClient = containerClient.getBlobClient(blobName);
-
-      // Retry is configured at function level, we always make the exception throw to trigger that retry
-      try (InputStream originalInputStream = blobClient.openInputStream()) {
-        fdR1Client.postConversion(fdrFase1ApiKey, getPayload(originalInputStream));
+        fdR1Client.postConversion(fdrFase1ApiKey, content);
         log.info(
                 "[{}][id={}] Successful conversion call to FdR1",
                 FN_NAME,
                 context.getInvocationId()
         );
-      }
 
     } catch (Exception e) {
       log.error(
@@ -154,18 +139,6 @@ public class FdrConversionBlobTrigger {
     }
     return true;
   }
-
-  public static String getPayload(InputStream contentStream) throws IOException {
-    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    try (OutputStream base64Output = Base64.getEncoder().wrap(outputStream)) {
-      contentStream.transferTo(base64Output);
-    }
-
-    // to optimize memory usage, the JSON is created manually
-    String base64 = outputStream.toString(StandardCharsets.UTF_8);
-    return String.format("{\"payload\":\"%s\",\"encoding\":\"base64\"}", base64);
-  }
-
 
   // Check retry index and save to dead-letter if max-retry has been reached
   private static void sendToDeadLetter(

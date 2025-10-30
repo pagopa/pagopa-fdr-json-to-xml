@@ -6,11 +6,11 @@ import feign.RequestLine;
 
 public interface FdR1Client {
 
-    // Call POST /convert/fdr3 with the JSON body
+    // Call POST /convert/fdr3 with byte array
     @RequestLine("POST /convert/fdr3")
     @Headers({
-            "Content-Type: application/json",
+            "Content-Type: application/zip",
             "Ocp-Apim-Subscription-Key: {subscriptionKey}"
     })
-    void postConversion(@Param("subscriptionKey") String subscriptionKey, String payload);
+    void postConversion(@Param("subscriptionKey") String subscriptionKey, byte[] payload);
 }
