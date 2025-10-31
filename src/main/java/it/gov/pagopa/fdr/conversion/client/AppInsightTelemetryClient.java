@@ -27,17 +27,32 @@ public class AppInsightTelemetryClient {
    * @param details details of the custom event
    * @param e exception added to the custom event
    */
-  public void createCustomEventForAlert(String details, Exception e) {
-    Map<String, String> props =
-        Map.of(
-            "type",
-            "FDR_JSON_TO_XML_ERROR",
-            "title",
-            "FdrJsonToXml last retry",
-            "details",
-            details,
-            "cause",
-            e.getCause() != null ? e.getCause().getMessage() : e.getMessage());
+  public void createCustomEventForAlert(String details, Object e) {
+    Map<String, String> props;
+    if (e instanceof Exception) {
+      Exception ex = (Exception) e;
+      props =
+              Map.of(
+                      "type",
+                      "FDR_JSON_TO_XML_ERROR",
+                      "title",
+                      "FdrJsonToXml last retry",
+                      "details",
+                      details,
+                      "cause",
+                      ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage());
+    } else {
+      props =
+              Map.of(
+                      "type",
+                      "FDR_JSON_TO_XML_ERROR",
+                      "title",
+                      "FdrJsonToXml last retry",
+                      "details",
+                      details,
+                      "cause",
+                      "Out-of-Memory");
+    }
     this.telemetryClient.trackEvent("FDR_JSON_TO_XML_ALERT", props, null);
   }
 }

@@ -18,11 +18,7 @@ import feign.FeignException;
 import it.gov.pagopa.fdr.conversion.client.AppInsightTelemetryClient;
 import it.gov.pagopa.fdr.conversion.client.FdR1Client;
 import it.gov.pagopa.fdr.conversion.exception.AlertAppException;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
+
 import java.util.Map;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -33,9 +29,11 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockserver.client.MockServerClient;
 import org.mockserver.model.HttpResponse;
-import shaded_package.org.apache.commons.io.IOUtils;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith({MockitoExtension.class, SystemStubsExtension.class})
 public class FdrConversionBlobTriggerTest {
 
   private static final String TEST_URL = "http://localhost:8080";
@@ -45,6 +43,9 @@ public class FdrConversionBlobTriggerTest {
   private AppInsightTelemetryClient aiTelemetryClientMock;
   private FdrConversionBlobTrigger sut;
 
+  @SystemStub
+  private EnvironmentVariables environmentVariables;
+
   @BeforeAll
   static void beforeAll() {
     startClientAndServer(8080);
@@ -52,10 +53,12 @@ public class FdrConversionBlobTriggerTest {
 
   @BeforeEach
   void beforeEach() {
+    environmentVariables.set("APPLICATIONINSIGHTS_CONNECTION_STRING", "InstrumentationKey=00000000-0000-0000-0000-000000000000");
+    environmentVariables.set("FDR_FASE1_BASE_URL", TEST_URL);
     aiTelemetryClientMock = Mockito.mock(AppInsightTelemetryClient.class);
-    sut =
-        new FdrConversionBlobTrigger(
-            Feign.builder().target(FdR1Client.class, TEST_URL), aiTelemetryClientMock);
+
+    FdrConversionBlobTrigger.setClientsForTest(Feign.builder().target(FdR1Client.class, TEST_URL), aiTelemetryClientMock);
+    sut = new FdrConversionBlobTrigger();
     context = createContext(1);
   }
 
@@ -64,8 +67,7 @@ public class FdrConversionBlobTriggerTest {
     byte[] content = "test".getBytes();
     createMockClient(200);
 
-    boolean processResult =
-        assertDoesNotThrow(() -> sut.process(content, "blob-name-1", METADATA, context));
+    boolean processResult = assertDoesNotThrow(() -> sut.process(content, "blob-name-1", METADATA, context));
 
     assertTrue(processResult);
 
@@ -77,8 +79,7 @@ public class FdrConversionBlobTriggerTest {
     byte[] content = "test".getBytes();
     createMockClient(500);
 
-    assertThrows(
-        FeignException.class, () -> sut.process(content, "blob-name-1", METADATA, context));
+    assertThrows(FeignException.class, () -> sut.process(content, "blob-name-1", METADATA, context));
 
     verify(aiTelemetryClientMock, never()).createCustomEventForAlert(anyString(), any());
   }
@@ -89,22 +90,9 @@ public class FdrConversionBlobTriggerTest {
     byte[] content = "todo".getBytes();
     createMockClient(500);
 
-    assertThrows(
-        AlertAppException.class, () -> sut.process(content, "blob-name-1", METADATA, context));
+    assertThrows(FeignException.class, () -> sut.process(content, "blob-name-1", METADATA, context));
 
     verify(aiTelemetryClientMock).createCustomEventForAlert(anyString(), any());
-  }
-
-  @Test
-  void payloadGenerationTest() throws IOException {
-    // test base64 content (.zip file) codification and the JSON conversion (expected JSON file)
-    InputStream is = new FileInputStream("./src/test/resources/test-1-content.json.zip");
-    byte[] content = IOUtils.toByteArray(is);
-    String actualPayload = FdrConversionBlobTrigger.getPayload(content);
-    Path expectedPath = Path.of("./src/test/resources/test-1-expected.json");
-    String expectedPayload = Files.readString(expectedPath);
-
-    Assertions.assertEquals(expectedPayload, actualPayload);
   }
 
   @Test
@@ -124,7 +112,7 @@ message=it.gov.pagopa.fdr.conversion.exception.AlertAppException: message""";
             request()
                 .withMethod("POST")
                 .withPath("/convert/fdr3")
-                .withHeader("Content-Type", "application/json"),
+                .withHeader("Content-Type", "application/zip"),
             exactly(1))
         .respond(
             request -> {

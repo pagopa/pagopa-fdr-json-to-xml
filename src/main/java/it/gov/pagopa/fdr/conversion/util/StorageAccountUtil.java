@@ -51,7 +51,7 @@ public class StorageAccountUtil {
         return blobContainerClient;
     }
 
-    public static void sendToErrorTable(ExecutionContext ctx, String blob, Map<String, String> metadata, String message, ErrorEnum errorEnum, String httpErrorResponse, Exception e){
+    public static void sendToErrorTable(ExecutionContext ctx, String blob, Map<String, String> metadata, String message, ErrorEnum errorEnum, String httpErrorResponse, Object e){
         String defaultSessionId = "NA_"+UUID.randomUUID();
         String sessionId = metadata.getOrDefault(SESSION_ID_METADATA_KEY, defaultSessionId);
         LocalDateTime now = LocalDateTime.now();
@@ -71,7 +71,12 @@ public class StorageAccountUtil {
         errorMap.put(ErrorTableColumns.COLUMN_FIELD_MESSAGE, message);
         errorMap.put(ErrorTableColumns.COLUMN_FIELD_ERROR_TYPE, errorEnum.name());
         errorMap.put(ErrorTableColumns.COLUMN_FIELD_HTTP_ERROR_RESPOSNE, httpErrorResponse);
-        errorMap.put(ErrorTableColumns.COLUMN_FIELD_STACK_TRACE, ExceptionUtils.getStackTrace(e));
+        if (e instanceof Exception) {
+            errorMap.put(ErrorTableColumns.COLUMN_FIELD_STACK_TRACE, ExceptionUtils.getStackTrace((Exception)e));
+        } else {
+            // java.lang.Error
+            errorMap.put(ErrorTableColumns.COLUMN_FIELD_STACK_TRACE, e);
+        }
 
         String partitionKey = insertedTime.toString().substring(0,10);
 

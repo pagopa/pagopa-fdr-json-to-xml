@@ -2,7 +2,7 @@ microservice-chart: &microservice-chart
   namespace: "fdr"
   image:
     repository: ghcr.io/pagopa/pagopa-fdr-json-to-xml
-    tag: "0.2.9"
+    tag: "0.2.9-5-optimization"
     pullPolicy: Always
   livenessProbe:
     handlerType: tcpSocket
@@ -20,6 +20,12 @@ microservice-chart: &microservice-chart
     failureThreshold: 10
   deployment:
     create: true
+    replicas: 1 # (default) same as HPA minReplica
+    strategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxUnavailable: 0
+        maxSurge: 1
   serviceMonitor:
     create: true
     endpoints:
@@ -54,7 +60,7 @@ microservice-chart: &microservice-chart
       memory: "256Mi"
       cpu: "0.25"
     limits:
-      memory: "768Mi"
+      memory: "650Mi"
       cpu: "0.40"
   autoscaling: &autoscaling
     enable: true
@@ -70,7 +76,7 @@ microservice-chart: &microservice-chart
           value: "75"
   envConfig: &envConfig
     APP_ENVIRONMENT: "uat"
-    #    JAVA_OPTS: "-XX:MaxHeapSize=256m -XX:MinHeapSize=64m"
+    JAVA_OPTS: "-XshowSettings:vm -XX:+UseContainerSupport -XX:+UseG1GC -XX:MinHeapFreeRatio=30 -XX:MaxHeapFreeRatio=30"
     WEBSITE_SITE_NAME: "pagopafdrjsontoxml" # required to show cloud role name in application insights
     FUNCTIONS_WORKER_RUNTIME: "java"
     FDR_FASE1_BASE_URL: "https://api.uat.platform.pagopa.it/fdr-nodo/service-internal/v1"

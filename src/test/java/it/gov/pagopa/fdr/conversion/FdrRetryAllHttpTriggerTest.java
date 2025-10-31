@@ -15,6 +15,8 @@ import com.microsoft.azure.functions.HttpStatus;
 import it.gov.pagopa.fdr.conversion.model.BlobData;
 import it.gov.pagopa.fdr.conversion.util.HttpResponseMessageMock;
 import it.gov.pagopa.fdr.conversion.util.StorageAccountUtil;
+
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,7 +56,7 @@ class FdrRetryAllHttpTriggerTest {
   }
 
   @Test
-  void testOK() {
+  void testOK() throws IOException {
     // Mock static methods using mockStatic
     try (var mockedStorageUtil = mockStatic(StorageAccountUtil.class)) {
       // Mock the behavior of blob retrieval and processing
@@ -82,7 +84,7 @@ class FdrRetryAllHttpTriggerTest {
   }
 
   @Test
-  void testBlobNotProcessed() {
+  void testBlobNotProcessed() throws  IOException {
     // Mock static methods using mockStatic
     try (var mockedStorageUtil = mockStatic(StorageAccountUtil.class)) {
       // Mock the behavior of blob retrieval and processing

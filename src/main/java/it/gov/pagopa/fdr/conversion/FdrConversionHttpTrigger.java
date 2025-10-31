@@ -33,8 +33,7 @@ public class FdrConversionHttpTrigger {
       @BindingName("blobName") String blobName,
       final ExecutionContext context) {
     try {
-      // this function should read from the blob storage and send the request with the gzip file to
-      // FdR1
+      // this function should read from the blob storage and send the request with the gzip file to FdR1
       BlobData blobData = StorageAccountUtil.getBlobContent(blobName);
       if (blobData == null) {
         return request

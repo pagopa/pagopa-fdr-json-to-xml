@@ -5,7 +5,7 @@
 
     <groupId>it.gov.pagopa</groupId>
     <artifactId>fdrjsontoxml</artifactId>
-    <version>0.2.9</version>
+    <version>0.2.9-5-optimization</version>
     <packaging>jar</packaging>
 
     <name>FdR-JSON-to-XML-Function</name>
@@ -106,6 +106,12 @@
             <groupId>org.powermock</groupId>
             <artifactId>powermock-reflect</artifactId>
             <version>2.0.9</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>uk.org.webcompere</groupId>
+            <artifactId>system-stubs-jupiter</artifactId>
+            <version>2.1.8</version>
             <scope>test</scope>
         </dependency>
         <!-- Start Mock Server -->
