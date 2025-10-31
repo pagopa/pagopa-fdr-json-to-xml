@@ -57,10 +57,10 @@ microservice-chart: &microservice-chart
     allowPrivilegeEscalation: false
   resources: &resources
     requests:
-      memory: "512Mi"
+      memory: "400Mi"
       cpu: "0.25"
     limits:
-      memory: "1Gi"
+      memory: "650Mi"
       cpu: "0.40"
   autoscaling: &autoscaling
     enable: true
@@ -114,7 +114,7 @@ microservice-chart: &microservice-chart
                   - "true"
   canaryDelivery:
     create: false
-# BLOB TRIGGER FUNCTION
+# ALL TRIGGER FUNCTION
 functions:
   !!merge <<: *microservice-chart
   ingress:
