@@ -2,7 +2,7 @@ microservice-chart: &microservice-chart
   namespace: "fdr"
   image:
     repository: ghcr.io/pagopa/pagopa-fdr-json-to-xml
-    tag: "0.2.10"
+    tag: "0.2.10-1-fix-memory"
     pullPolicy: Always
   livenessProbe:
     handlerType: tcpSocket
@@ -60,7 +60,7 @@ microservice-chart: &microservice-chart
       memory: "400Mi"
       cpu: "0.25"
     limits:
-      memory: "650Mi"
+      memory: "2Gi"
       cpu: "0.40"
   autoscaling: &autoscaling
     enable: true
@@ -70,6 +70,11 @@ microservice-chart: &microservice-chart
     cooldownPeriod: 50 # seconds
     triggers:
       - type: cpu
+        metadata:
+          # Required
+          type: Utilization # Allowed types are 'Utilization' or 'AverageValue'
+          value: "75"
+      - type: memory
         metadata:
           # Required
           type: Utilization # Allowed types are 'Utilization' or 'AverageValue'
