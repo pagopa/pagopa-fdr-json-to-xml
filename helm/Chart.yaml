@@ -1,8 +1,8 @@
 apiVersion: v2
 name: pagopa-fdr-json-to-xml
 description: AppFn to convert SOAP FdR to JSON FdR
-version: 0.119.0
-appVersion: 0.2.10-1-fix-memory
+version: 0.120.0
+appVersion: 0.2.11
 dependencies:
   - name: microservice-chart
     version: 8.0.2
